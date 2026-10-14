@@ -59,6 +59,15 @@ We test our codes under the following environment:
   - `python play.py`
 
 
+## Go2W local MuJoCo test (Apple Silicon)
+
+The local test uses `unitree_sdk2_python` DDS channels and PyTorch MPS inference. See [sim2sim/README.md](sim2sim/README.md) for installation, policy metadata and [validation results](docs/local_sim2sim_validation.md). No trained Go2W HIM policy is bundled; the default model is an explicitly untrained interface probe.
+
+```bash
+./sim2sim/setup.sh
+./sim2sim/run.sh --device mps --duration 0
+```
+
 ## 🔗 Citation
 
 If you find our work helpful, please cite:

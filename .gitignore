@@ -58,3 +58,9 @@ runs
 # other
 *.egg-info
 __pycache__
+
+# Local MuJoCo / SDK environment and generated assets
+.venv-sim2sim/
+.deps/
+.cache/sim2sim/
+.pytest_cache/
