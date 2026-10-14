@@ -64,3 +64,4 @@ __pycache__
 .deps/
 .cache/sim2sim/
 .pytest_cache/
+outputs/

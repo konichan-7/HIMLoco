@@ -263,7 +263,7 @@ class LeggedRobotCfgPPO(BaseConfig):
     class runner:
         policy_class_name = 'HIMActorCritic'
         algorithm_class_name = 'HIMPPO'
-        num_steps_per_env = 100 # per iteration
+        num_steps_per_env = 24 # per iteration; see InternRobotics/HIMLoco issue #27
         max_iterations = 200000 # number of policy updates
 
         # logging
