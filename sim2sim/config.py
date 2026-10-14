@@ -14,8 +14,8 @@ JOINTS = tuple(
 # For each policy joint, its index in Unitree's LowState / LowCmd.
 POLICY_TO_SDK = np.array([3, 4, 5, 0, 1, 2, 9, 10, 11, 6, 7, 8, 13, 12, 15, 14])
 NOMINAL = np.tile([0.0, 0.8, -1.5], 4).astype(np.float32)
-KP = np.array([70.0] * 12 + [0.0] * 4, dtype=np.float32)
-KD = np.array([3.0] * 12 + [0.5] * 4, dtype=np.float32)
+KP = np.array([40.0] * 12 + [0.0] * 4, dtype=np.float32)
+KD = np.array([1.0] * 12 + [0.5] * 4, dtype=np.float32)
 LIMITS = np.array([23.7, 23.7, 35.55] * 4 + [23.7] * 4)
 PHYSICS_DT = 0.002
 POLICY_DT = 0.02

@@ -227,12 +227,13 @@ class PolicyExporterHIM(torch.nn.Module):
         super().__init__()
         self.actor = copy.deepcopy(actor_critic.actor)
         self.estimator = copy.deepcopy(actor_critic.estimator.encoder)
+        self.num_one_step_obs = int(actor_critic.num_one_step_obs)
 
     def forward(self, obs_history):
         parts = self.estimator(obs_history)[:, 0:19]
         vel, z = parts[..., :3], parts[..., 3:]
         z = F.normalize(z, dim=-1, p=2.0)
-        return self.actor(torch.cat((obs_history[:, 0:45], vel, z), dim=1))
+        return self.actor(torch.cat((obs_history[:, :self.num_one_step_obs], vel, z), dim=1))
 
     def export(self, path):
         os.makedirs(path, exist_ok=True)
