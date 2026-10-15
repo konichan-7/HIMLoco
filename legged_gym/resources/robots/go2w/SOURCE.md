@@ -1,10 +1,11 @@
 # Go2W assets
 
 - Source: [unitreerobotics/unitree_ros](https://github.com/unitreerobotics/unitree_ros/tree/5994d4faef0a9cadd3287f8de0199a67eeb2a259/robots/go2w_description), commit `5994d4faef0a9cadd3287f8de0199a67eeb2a259`.
-- Local changes: relative mesh paths; four wheel collision meshes replaced by cylinders (radius 0.086 m, length 0.045 m, xyz=0, rpy=[π/2,0,0]). Wheel dimensions/orientation follow [TrackinBIT](https://github.com/TrackinBIT/HIMLoco-for-Go2W/tree/011693738c61603c3f22f2bce755098dd36fa7eb). Other explicit dynamics and visual assets remain from the official URDF.
+- Local changes: relative mesh paths; four wheel collision meshes replaced by cylinders (radius 0.086 m, length 0.045 m, xyz=0, rpy=[π/2,0,0]). Wheel dimensions/orientation follow [TrackinBIT](https://github.com/TrackinBIT/HIMLoco-for-Go2W/tree/011693738c61603c3f22f2bce755098dd36fa7eb). Other masses, COMs, inertias, joint origins/axes, effort/velocity limits and visual geometry remain from the official URDF; Gym joint-type and visual-format compatibility exceptions are documented below.
 - Active URDF: `urdf/go2w.urdf`, SHA256 `ec99cb80627ce147be4679ad2c9dd6e81ac387a0e8b8e77cdc20f4dd747767b5`.
 - Active MJCF: `xml/go2w.xml`, generated with `python -m sim2sim.build_model`. It uses explicit inertias and primitive collisions, with scene friction 0.8, self-collisions disabled and timestep 0.002 s.
-- `meshes/` contains the eight files referenced by the active URDF, plus the two original calf STL files retained as sources for their equivalent DAE representations.
+- `meshes/` contains the eight files referenced by the active URDF, plus the two original calf STL files retained as sources for their equivalent DAE representations. MuJoCo directly reuses those source STLs: the calf DAE files are exact triangle/normal re-encodings required only for Gym visual import. `meshes/mujoco/*.obj` contains the 13 required visual material parts from the other six DAE files; scene transforms and source colors are retained. In total, 15 mesh assets serve 29 visual geoms. Rebuild with `python -m sim2sim.build_model`.
+- MJCF visual geoms use group 1, `contype=conaffinity=0`, `mass=0`; collision geoms use group 3, hidden in the default viewer. Scene lights/ground/sky are local presentation choices; mirror reflection is disabled.
 
 History, upstream mass/inertia differences, wheel-axis/importer issues and cleanup decisions: [docs/sim2sim_known_issues.md](../../../../docs/sim2sim_known_issues.md). Historical source copies and removed diagnostics are recoverable from `.cache/sim2sim/cleanup_20261015/before.zip`; current upstream revisions are linked above.
 

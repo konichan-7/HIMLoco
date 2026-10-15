@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import struct
 import threading
 import time
 from pathlib import Path
@@ -81,6 +82,7 @@ def run(args):
     overruns = 0
     status = "failed"
     next_tick = 0
+    command_changes = []
     try:
         wait_until = time.monotonic() + 20
         while state.get()[0] is None:
@@ -94,6 +96,10 @@ def run(args):
                 raise TimeoutError("Simulated LowState is stale")
             if writer_stats["error"]:
                 raise RuntimeError(writer_stats["error"])
+            # Simulation-only viewer-close marker (keyboard or native viewer).
+            if msg.wireless_remote[12]:
+                status = "viewer_closed"
+                break
             if args.duration > 0 and msg.tick >= round(args.duration * 1000) - 1:
                 status = "completed"
                 break
@@ -104,9 +110,23 @@ def run(args):
                 raise RuntimeError(
                     f"Missed policy tick: expected {next_tick}, received {msg.tick}"
                 )
-            for segment in schedule:
-                if segment["start"] <= msg.tick / 1000:
-                    command = np.asarray(segment["command"])
+            if args.keyboard:
+                command = np.array(
+                    struct.unpack("<3f", bytes(msg.wireless_remote[:12]))
+                )
+                if not np.isfinite(command).all():
+                    raise ValueError("Nonfinite keyboard command")
+                if (
+                    not command_changes
+                    or command.tolist() != command_changes[-1]["command"]
+                ):
+                    command_changes.append(
+                        {"tick_ms": msg.tick, "command": command.tolist()}
+                    )
+            else:
+                for segment in schedule:
+                    if segment["start"] <= msg.tick / 1000:
+                        command = np.asarray(segment["command"])
             q, dq = policy.step(msg, command)
             target = command_message(
                 q, dq, policy.kp, policy.kd, simulation_tick=msg.tick
@@ -147,6 +167,8 @@ def run(args):
             if len(latency)
             else {},
             "command": command.tolist(),
+            "command_source": "keyboard" if args.keyboard else "schedule",
+            "command_changes": command_changes,
             "schedule": schedule,
             "policy_sha256": hashlib.sha256(policy.path.read_bytes()).hexdigest(),
             "domain": args.domain,
@@ -177,7 +199,9 @@ def main():
     p.add_argument("--domain", type=int, default=71)
     p.add_argument("--duration", type=float, default=10.0)
     p.add_argument("--command", type=float, nargs=3, default=[0.0, 0.0, 0.0])
-    p.add_argument(
+    commands = p.add_mutually_exclusive_group()
+    commands.add_argument("--keyboard", action="store_true")
+    commands.add_argument(
         "--schedule",
         type=Path,
         help="JSON list of {start: seconds, command: [vx, vy, yaw_rate]}",

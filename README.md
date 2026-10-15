@@ -65,7 +65,7 @@ The local simulator uses `unitree_sdk2_python` DDS channels, 50 Hz policy infere
 
 ```bash
 ./sim2sim/setup.sh
-./sim2sim/run.sh --policy /path/to/exported/policy.pt --device mps --duration 0
+./sim2sim/run.sh --keyboard --policy /path/to/exported/policy.pt --device mps --duration 0 --terrain mixed
 ```
 
 ## 🔗 Citation

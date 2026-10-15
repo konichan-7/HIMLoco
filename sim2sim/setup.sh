@@ -29,5 +29,5 @@ if [ ! -x .venv-sim2sim/bin/python ]; then
   uv venv --python 3.11.16 .venv-sim2sim
 fi
 export CYCLONEDDS_HOME="$HIM_ROOT/.deps/cyclonedds-install"
-uv pip install --python .venv-sim2sim/bin/python -r sim2sim/requirements.lock.txt
+uv pip install --python .venv-sim2sim/bin/python -r sim2sim/requirements.txt
 .venv-sim2sim/bin/python -m sim2sim.build_model

@@ -4,105 +4,134 @@
     <body name="base">
       <inertial mass="6.9230000000000009" pos="0.021189390726563624 0 -0.0053716721074678593" fullinertia="0.024502420765179684 0.09824293926217377 0.10716271849699407 0.00012166 0.0014956963870049491 -3.1199999999999999e-05" />
       <joint name="floating_base" type="free" />
-      <geom size="0.1881 0.04675 0.057" type="box" pos="0 0 0" quat="1 0 0 0" name="base_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-      <geom size="0.06 0.045" pos="0.28499999999999998 0 0.01" type="cylinder" quat="1 0 0 0" name="base_collision_1" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-      <geom size="0.06" pos="0.29299999999999998 0 -0.060000000000000005" quat="1 0 0 0" name="base_collision_2" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+      <geom size="0.1881 0.04675 0.057" type="box" name="base_collision_0" pos="0 0 0" quat="1 0 0 0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+      <geom size="0.06 0.045" pos="0.28499999999999998 0 0.01" type="cylinder" name="base_collision_1" quat="1 0 0 0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+      <geom size="0.06" pos="0.29299999999999998 0 -0.060000000000000005" name="base_collision_2" quat="1 0 0 0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
       <body name="FL_hip" pos="0.1934 0.0465 0">
         <inertial mass="0.67800000000000005" pos="-0.0054000000000000003 0.0019400000000000003 -0.00010500000000000002" fullinertia="0.00048000000000000001 0.00088400000000000002 0.00059599999999999996 -3.01e-06 1.11e-06 -1.42e-06" />
         <joint name="FL_hip_joint" pos="0 0 0" axis="1 0 0" range="-1.0472 1.0472" actuatorfrcrange="-23.7 23.7" />
-        <geom size="0.046 0.02" pos="0 0.080000000000000002 0" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="FL_hip_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+        <geom size="0.046 0.02" pos="0 0.080000000000000002 0" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="FL_hip_collision_0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
         <body name="FL_thigh" pos="0 0.0955 0">
           <inertial mass="1.1519999999999999" pos="-0.0037399999999999994 -0.0223 -0.0327" fullinertia="0.0058399999999999997 0.0057999999999999996 0.0010300000000000001 8.7200000000000005e-05 -0.00028899999999999998 0.00080800000000000002" />
           <joint name="FL_thigh_joint" pos="0 0 0" axis="0 1 0" range="-1.5707963267948966 3.4907" actuatorfrcrange="-23.7 23.7" />
-          <geom size="0.055 0.01225 0.017" pos="0 0 -0.1065" quat="0.70710678118654757 0 0.70710678118654746 0" type="box" name="FL_thigh_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+          <geom size="0.055 0.01225 0.017" pos="0 0 -0.1065" quat="0.70710678118654757 0 0.70710678118654746 0" type="box" name="FL_thigh_collision_0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
           <body name="FL_calf" pos="0 0 -0.213">
             <inertial mass="0.80000000000000004" pos="0.0010548999999999999 0.0078873125000000002 -0.20495550000000001" fullinertia="0.0036382192132718744 0.0042469750061920001 0.001051613067863875 7.8190827649999986e-06 -5.8715245559999983e-05 0.00016031828832499998" />
             <joint name="FL_calf_joint" pos="0 0 0" axis="0 1 0" range="-2.7227 -0.83776" actuatorfrcrange="-35.55 35.55" />
-            <geom size="0.012 0.06" pos="0.0080000000000000002 0 -0.059999999999999998" quat="0.9944925627484974 0 -0.10480716882888248 0" type="cylinder" name="FL_calf_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.011 0.0325" pos="0.02 0 -0.14799999999999999" quat="0.99968751627570263 0 0.024997395914712332 0" type="cylinder" name="FL_calf_collision_1" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133036 0 0.26190926814952442 0" type="cylinder" name="FL_calf_collision_2" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.05 0.025" pos="0 0.01 -0.22639999999999999" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="FL_calf_collision_3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.012 0.06" pos="0.0080000000000000002 0 -0.059999999999999998" quat="0.9944925627484974 0 -0.10480716882888248 0" type="cylinder" name="FL_calf_collision_0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.011 0.0325" pos="0.02 0 -0.14799999999999999" quat="0.99968751627570263 0 0.024997395914712332 0" type="cylinder" name="FL_calf_collision_1" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133025 0 0.26190926814952442 0" type="cylinder" name="FL_calf_collision_2" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.05 0.025" pos="0 0.01 -0.22639999999999999" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="FL_calf_collision_3" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <body name="FL_foot" pos="0 0 -0.2264">
               <inertial mass="0.52000000000000002" pos="0 0.059999999999999998 0" fullinertia="0.00069999999999999999 0.0011999999999999999 0.00069999999999999999 0 0 0" />
               <joint name="FL_foot_joint" pos="0 0 0" axis="0 1 0" range="-999999 999999" actuatorfrcrange="-23.7 23.7" />
-              <geom size="0.086 0.0225" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" pos="0 0 0" name="FL_foot_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+              <geom size="0.086 0.0225" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="FL_foot_collision_0" pos="0 0 0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+              <geom name="FL_foot_visual_0_visual_left_wheel_0" type="mesh" mesh="visual_left_wheel_0" pos="0 0 0" euler="0 0 0" rgba="1 1 1 1" group="1" contype="0" conaffinity="0" mass="0" />
             </body>
+            <geom name="FL_calf_visual_0_visual_calf_0" type="mesh" mesh="visual_calf_0" pos="0 0 0" euler="0 0 0" rgba="1 1 1 1" group="1" contype="0" conaffinity="0" mass="0" />
           </body>
+          <geom name="FL_thigh_visual_0_visual_thigh_0" type="mesh" mesh="visual_thigh_0" pos="0 0 0" euler="0 0 0" rgba="0.6705882352941176 0.6941176470588235 0.7725490196078432 1.0" group="1" contype="0" conaffinity="0" mass="0" />
+          <geom name="FL_thigh_visual_0_visual_thigh_1" type="mesh" mesh="visual_thigh_1" pos="0 0 0" euler="0 0 0" rgba="0.9019607843137255 0.9490196078431372 0.9490196078431372 1.0" group="1" contype="0" conaffinity="0" mass="0" />
         </body>
+        <geom name="FL_hip_visual_0_visual_hip_0" type="mesh" mesh="visual_hip_0" pos="0 0 0" euler="0 0 0" rgba="0.6705882352941176 0.6941176470588235 0.7725490196078432 1.0" group="1" contype="0" conaffinity="0" mass="0" />
+        <geom name="FL_hip_visual_0_visual_hip_1" type="mesh" mesh="visual_hip_1" pos="0 0 0" euler="0 0 0" rgba="0.9019607843137255 0.9490196078431372 0.9490196078431372 1.0" group="1" contype="0" conaffinity="0" mass="0" />
       </body>
       <body name="FR_hip" pos="0.1934 -0.0465 0">
         <inertial mass="0.67800000000000005" pos="-0.0054000000000000003 -0.0019400000000000003 -0.00010500000000000002" fullinertia="0.00048000000000000001 0.00088400000000000002 0.00059599999999999996 3.01e-06 1.11e-06 1.42e-06" />
         <joint name="FR_hip_joint" pos="0 0 0" axis="1 0 0" range="-1.0472 1.0472" actuatorfrcrange="-23.7 23.7" />
-        <geom size="0.046 0.02" pos="0 -0.080000000000000002 0" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="FR_hip_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+        <geom size="0.046 0.02" pos="0 -0.080000000000000002 0" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="FR_hip_collision_0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
         <body name="FR_thigh" pos="0 -0.0955 0">
           <inertial mass="1.1519999999999999" pos="-0.0037399999999999994 0.0223 -0.0327" fullinertia="0.0058399999999999997 0.0057999999999999996 0.0010300000000000001 -8.7200000000000005e-05 -0.00028899999999999998 -0.00080800000000000002" />
           <joint name="FR_thigh_joint" pos="0 0 0" axis="0 1 0" range="-1.5707963267948966 3.4907" actuatorfrcrange="-23.7 23.7" />
-          <geom size="0.055 0.01225 0.017" pos="0 0 -0.1065" quat="0.70710678118654757 0 0.70710678118654746 0" type="box" name="FR_thigh_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+          <geom size="0.055 0.01225 0.017" pos="0 0 -0.1065" quat="0.70710678118654757 0 0.70710678118654746 0" type="box" name="FR_thigh_collision_0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
           <body name="FR_calf" pos="0 0 -0.213">
             <inertial mass="0.80000000000000004" pos="0.0010548999999999999 -0.0078873125000000002 -0.20495550000000001" fullinertia="0.0036382192132718744 0.0042469750061920001 0.001051613067863875 -7.8190827649999986e-06 -5.8715245559999983e-05 -0.00016031828832499998" />
             <joint name="FR_calf_joint" pos="0 0 0" axis="0 1 0" range="-2.7227 -0.83776" actuatorfrcrange="-35.55 35.55" />
-            <geom size="0.013 0.06" pos="0.01 0 -0.059999999999999998" quat="0.99500416527802582 0 -0.099833416646828155 0" type="cylinder" name="FR_calf_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.011 0.0325" pos="0.02 0 -0.14799999999999999" quat="0.99968751627570263 0 0.024997395914712332 0" type="cylinder" name="FR_calf_collision_1" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133036 0 0.26190926814952442 0" type="cylinder" name="FR_calf_collision_2" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.05 0.025" pos="0 -0.01 -0.22639999999999999" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="FR_calf_collision_3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.013 0.06" pos="0.01 0 -0.059999999999999998" quat="0.99500416527802582 0 -0.099833416646828155 0" type="cylinder" name="FR_calf_collision_0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.011 0.0325" pos="0.02 0 -0.14799999999999999" quat="0.99968751627570263 0 0.024997395914712332 0" type="cylinder" name="FR_calf_collision_1" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133025 0 0.26190926814952442 0" type="cylinder" name="FR_calf_collision_2" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.05 0.025" pos="0 -0.01 -0.22639999999999999" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="FR_calf_collision_3" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <body name="FR_foot" pos="0 0 -0.2264">
               <inertial mass="0.52000000000000002" pos="0 -0.059999999999999998 0" fullinertia="0.00069999999999999999 0.0011999999999999999 0.00069999999999999999 0 0 0" />
               <joint name="FR_foot_joint" pos="0 0 0" axis="0 1 0" range="-999999 999999" actuatorfrcrange="-23.7 23.7" />
-              <geom size="0.086 0.0225" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" pos="0 -0 0" name="FR_foot_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+              <geom size="0.086 0.0225" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="FR_foot_collision_0" pos="0 -0 0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+              <geom name="FR_foot_visual_0_visual_right_wheel_0" type="mesh" mesh="visual_right_wheel_0" pos="0 0 0" euler="0 0 0" rgba="1 1 1 1" group="1" contype="0" conaffinity="0" mass="0" />
             </body>
+            <geom name="FR_calf_visual_0_visual_calf_mirror_0" type="mesh" mesh="visual_calf_mirror_0" pos="0 0 0" euler="0 0 0" rgba="1 1 1 1" group="1" contype="0" conaffinity="0" mass="0" />
           </body>
+          <geom name="FR_thigh_visual_0_visual_thigh_mirror_0" type="mesh" mesh="visual_thigh_mirror_0" pos="0 0 0" euler="0 0 0" rgba="0.6705882352941176 0.6941176470588235 0.7725490196078432 1.0" group="1" contype="0" conaffinity="0" mass="0" />
+          <geom name="FR_thigh_visual_0_visual_thigh_mirror_1" type="mesh" mesh="visual_thigh_mirror_1" pos="0 0 0" euler="0 0 0" rgba="0.9019607843137255 0.9490196078431372 0.9490196078431372 1.0" group="1" contype="0" conaffinity="0" mass="0" />
         </body>
+        <geom name="FR_hip_visual_0_visual_hip_0" type="mesh" mesh="visual_hip_0" pos="0 0 0" euler="3.1415 0 0" rgba="0.6705882352941176 0.6941176470588235 0.7725490196078432 1.0" group="1" contype="0" conaffinity="0" mass="0" />
+        <geom name="FR_hip_visual_0_visual_hip_1" type="mesh" mesh="visual_hip_1" pos="0 0 0" euler="3.1415 0 0" rgba="0.9019607843137255 0.9490196078431372 0.9490196078431372 1.0" group="1" contype="0" conaffinity="0" mass="0" />
       </body>
       <body name="RL_hip" pos="-0.1934 0.0465 0">
         <inertial mass="0.67800000000000005" pos="0.0054000000000000003 0.0019400000000000003 -0.00010500000000000002" fullinertia="0.00048000000000000001 0.00088400000000000002 0.00059599999999999996 3.01e-06 -1.11e-06 -1.42e-06" />
         <joint name="RL_hip_joint" pos="0 0 0" axis="1 0 0" range="-1.0472 1.0472" actuatorfrcrange="-23.7 23.7" />
-        <geom size="0.046 0.02" pos="0 0.080000000000000002 0" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="RL_hip_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+        <geom size="0.046 0.02" pos="0 0.080000000000000002 0" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="RL_hip_collision_0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
         <body name="RL_thigh" pos="0 0.0955 0">
           <inertial mass="1.1519999999999999" pos="-0.0037399999999999994 -0.0223 -0.0327" fullinertia="0.0058399999999999997 0.0057999999999999996 0.0010300000000000001 8.7200000000000005e-05 -0.00028899999999999998 0.00080800000000000002" />
           <joint name="RL_thigh_joint" pos="0 0 0" axis="0 1 0" range="-0.5236 4.5379" actuatorfrcrange="-23.7 23.7" />
-          <geom size="0.055 0.01225 0.017" pos="0 0 -0.1065" quat="0.70710678118654757 0 0.70710678118654746 0" type="box" name="RL_thigh_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+          <geom size="0.055 0.01225 0.017" pos="0 0 -0.1065" quat="0.70710678118654757 0 0.70710678118654746 0" type="box" name="RL_thigh_collision_0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
           <body name="RL_calf" pos="0 0 -0.213">
             <inertial mass="0.80000000000000004" pos="0.0010548999999999999 0.0078873125000000002 -0.20495550000000001" fullinertia="0.0036382192132718744 0.0042469750061920001 0.001051613067863875 7.8190827649999986e-06 -5.8715245559999983e-05 0.00016031828832499998" />
             <joint name="RL_calf_joint" pos="0 0 0" axis="0 1 0" range="-2.7227 -0.83776" actuatorfrcrange="-35.55 35.55" />
-            <geom size="0.013 0.06" pos="0.01 0 -0.059999999999999998" quat="0.99500416527802582 0 -0.099833416646828155 0" type="cylinder" name="RL_calf_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.011 0.0325" pos="0.02 0 -0.14799999999999999" quat="0.99968751627570263 0 0.024997395914712332 0" type="cylinder" name="RL_calf_collision_1" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133036 0 0.26190926814952442 0" type="cylinder" name="RL_calf_collision_2" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.05 0.025" pos="0 0.01 -0.22639999999999999" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="RL_calf_collision_3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.013 0.06" pos="0.01 0 -0.059999999999999998" quat="0.99500416527802582 0 -0.099833416646828155 0" type="cylinder" name="RL_calf_collision_0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.011 0.0325" pos="0.02 0 -0.14799999999999999" quat="0.99968751627570263 0 0.024997395914712332 0" type="cylinder" name="RL_calf_collision_1" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133025 0 0.26190926814952442 0" type="cylinder" name="RL_calf_collision_2" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.05 0.025" pos="0 0.01 -0.22639999999999999" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="RL_calf_collision_3" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <body name="RL_foot" pos="0 0 -0.2264">
               <inertial mass="0.52000000000000002" pos="0 0.059999999999999998 0" fullinertia="0.00069999999999999999 0.0011999999999999999 0.00069999999999999999 0 0 0" />
               <joint name="RL_foot_joint" pos="0 0 0" axis="0 1 0" range="-999999 999999" actuatorfrcrange="-23.7 23.7" />
-              <geom size="0.086 0.0225" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" pos="0 0 0" name="RL_foot_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+              <geom size="0.086 0.0225" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="RL_foot_collision_0" pos="0 0 0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+              <geom name="RL_foot_visual_0_visual_left_wheel_0" type="mesh" mesh="visual_left_wheel_0" pos="0 0 0" euler="0 0 0" rgba="1 1 1 1" group="1" contype="0" conaffinity="0" mass="0" />
             </body>
+            <geom name="RL_calf_visual_0_visual_calf_0" type="mesh" mesh="visual_calf_0" pos="0 0 0" euler="0 0 0" rgba="1 1 1 1" group="1" contype="0" conaffinity="0" mass="0" />
           </body>
+          <geom name="RL_thigh_visual_0_visual_thigh_0" type="mesh" mesh="visual_thigh_0" pos="0 0 0" euler="0 0 0" rgba="0.6705882352941176 0.6941176470588235 0.7725490196078432 1.0" group="1" contype="0" conaffinity="0" mass="0" />
+          <geom name="RL_thigh_visual_0_visual_thigh_1" type="mesh" mesh="visual_thigh_1" pos="0 0 0" euler="0 0 0" rgba="0.9019607843137255 0.9490196078431372 0.9490196078431372 1.0" group="1" contype="0" conaffinity="0" mass="0" />
         </body>
+        <geom name="RL_hip_visual_0_visual_hip_0" type="mesh" mesh="visual_hip_0" pos="0 0 0" euler="0 3.1415 0" rgba="0.6705882352941176 0.6941176470588235 0.7725490196078432 1.0" group="1" contype="0" conaffinity="0" mass="0" />
+        <geom name="RL_hip_visual_0_visual_hip_1" type="mesh" mesh="visual_hip_1" pos="0 0 0" euler="0 3.1415 0" rgba="0.9019607843137255 0.9490196078431372 0.9490196078431372 1.0" group="1" contype="0" conaffinity="0" mass="0" />
       </body>
       <body name="RR_hip" pos="-0.1934 -0.0465 0">
         <inertial mass="0.67800000000000005" pos="0.0054000000000000003 -0.0019400000000000003 -0.00010500000000000002" fullinertia="0.00048000000000000001 0.00088400000000000002 0.00059599999999999996 -3.01e-06 -1.11e-06 1.42e-06" />
         <joint name="RR_hip_joint" pos="0 0 0" axis="1 0 0" range="-1.0472 1.0472" actuatorfrcrange="-23.7 23.7" />
-        <geom size="0.046 0.02" pos="0 -0.080000000000000002 0" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="RR_hip_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+        <geom size="0.046 0.02" pos="0 -0.080000000000000002 0" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="RR_hip_collision_0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
         <body name="RR_thigh" pos="0 -0.0955 0">
           <inertial mass="1.1519999999999999" pos="-0.0037399999999999994 0.0223 -0.0327" fullinertia="0.0058399999999999997 0.0057999999999999996 0.0010300000000000001 -8.7200000000000005e-05 -0.00028899999999999998 -0.00080800000000000002" />
           <joint name="RR_thigh_joint" pos="0 0 0" axis="0 1 0" range="-0.5236 4.5379" actuatorfrcrange="-23.7 23.7" />
-          <geom size="0.055 0.01225 0.017" pos="0 0 -0.1065" quat="0.70710678118654757 0 0.70710678118654746 0" type="box" name="RR_thigh_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+          <geom size="0.055 0.01225 0.017" pos="0 0 -0.1065" quat="0.70710678118654757 0 0.70710678118654746 0" type="box" name="RR_thigh_collision_0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
           <body name="RR_calf" pos="0 0 -0.213">
             <inertial mass="0.80000000000000004" pos="0.0010548999999999999 -0.0078873125000000002 -0.20495550000000001" fullinertia="0.0036382192132718744 0.0042469750061920001 0.001051613067863875 -7.8190827649999986e-06 -5.8715245559999983e-05 -0.00016031828832499998" />
             <joint name="RR_calf_joint" pos="0 0 0" axis="0 1 0" range="-2.7227 -0.83776" actuatorfrcrange="-35.55 35.55" />
-            <geom size="0.013 0.06" pos="0.01 0 -0.059999999999999998" quat="0.99500416527802582 0 -0.099833416646828155 0" type="cylinder" name="RR_calf_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.011 0.0325" pos="0.02 0 -0.14799999999999999" quat="0.99968751627570263 0 0.024997395914712332 0" type="cylinder" name="RR_calf_collision_1" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133036 0 0.26190926814952442 0" type="cylinder" name="RR_calf_collision_2" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.05 0.025" pos="0 -0.01 -0.22639999999999999" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="RR_calf_collision_3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.013 0.06" pos="0.01 0 -0.059999999999999998" quat="0.99500416527802582 0 -0.099833416646828155 0" type="cylinder" name="RR_calf_collision_0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.011 0.0325" pos="0.02 0 -0.14799999999999999" quat="0.99968751627570263 0 0.024997395914712332 0" type="cylinder" name="RR_calf_collision_1" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133025 0 0.26190926814952442 0" type="cylinder" name="RR_calf_collision_2" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.05 0.025" pos="0 -0.01 -0.22639999999999999" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="RR_calf_collision_3" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <body name="RR_foot" pos="0 0 -0.2264">
               <inertial mass="0.52000000000000002" pos="0 -0.059999999999999998 0" fullinertia="0.00069999999999999999 0.0011999999999999999 0.00069999999999999999 0 0 0" />
               <joint name="RR_foot_joint" pos="0 0 0" axis="0 1 0" range="-999999 999999" actuatorfrcrange="-23.7 23.7" />
-              <geom size="0.086 0.0225" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" pos="0 -0 0" name="RR_foot_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+              <geom size="0.086 0.0225" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="RR_foot_collision_0" pos="0 -0 0" group="3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+              <geom name="RR_foot_visual_0_visual_right_wheel_0" type="mesh" mesh="visual_right_wheel_0" pos="0 0 0" euler="0 0 0" rgba="1 1 1 1" group="1" contype="0" conaffinity="0" mass="0" />
             </body>
+            <geom name="RR_calf_visual_0_visual_calf_mirror_0" type="mesh" mesh="visual_calf_mirror_0" pos="0 0 0" euler="0 0 0" rgba="1 1 1 1" group="1" contype="0" conaffinity="0" mass="0" />
           </body>
+          <geom name="RR_thigh_visual_0_visual_thigh_mirror_0" type="mesh" mesh="visual_thigh_mirror_0" pos="0 0 0" euler="0 0 0" rgba="0.6705882352941176 0.6941176470588235 0.7725490196078432 1.0" group="1" contype="0" conaffinity="0" mass="0" />
+          <geom name="RR_thigh_visual_0_visual_thigh_mirror_1" type="mesh" mesh="visual_thigh_mirror_1" pos="0 0 0" euler="0 0 0" rgba="0.9019607843137255 0.9490196078431372 0.9490196078431372 1.0" group="1" contype="0" conaffinity="0" mass="0" />
         </body>
+        <geom name="RR_hip_visual_0_visual_hip_0" type="mesh" mesh="visual_hip_0" pos="0 0 0" euler="3.1415 3.1415 0" rgba="0.6705882352941176 0.6941176470588235 0.7725490196078432 1.0" group="1" contype="0" conaffinity="0" mass="0" />
+        <geom name="RR_hip_visual_0_visual_hip_1" type="mesh" mesh="visual_hip_1" pos="0 0 0" euler="3.1415 3.1415 0" rgba="0.9019607843137255 0.9490196078431372 0.9490196078431372 1.0" group="1" contype="0" conaffinity="0" mass="0" />
       </body>
+      <light name="key_light" ambient="0.1 0.1 0.1" diffuse="0.5 0.5 0.5" specular="0.1 0.1 0.1" mode="trackcom" directional="true" pos="0 -2 3" dir="0.2 0.4 -1" />
       <site name="imu" pos="-0.02557 0 0.04232" euler="0 0 0" size="0.005" />
+      <geom name="base_visual_0_visual_base_0" type="mesh" mesh="visual_base_0" pos="0 0 0" euler="0 0 0" rgba="0.6705882352941176 0.6941176470588235 0.7725490196078432 1.0" group="1" contype="0" conaffinity="0" mass="0" />
+      <geom name="base_visual_0_visual_base_1" type="mesh" mesh="visual_base_1" pos="0 0 0" euler="0 0 0" rgba="1.0 1.0 1.0 1.0" group="1" contype="0" conaffinity="0" mass="0" />
+      <geom name="base_visual_0_visual_base_2" type="mesh" mesh="visual_base_2" pos="0 0 0" euler="0 0 0" rgba="0.00784313725490196 0.00784313725490196 0.00784313725490196 1.0" group="1" contype="0" conaffinity="0" mass="0" />
+      <geom name="base_visual_0_visual_base_3" type="mesh" mesh="visual_base_3" pos="0 0 0" euler="0 0 0" rgba="0.011764705882352941 0.011764705882352941 0.011764705882352941 1.0" group="1" contype="0" conaffinity="0" mass="0" />
+      <geom name="base_visual_0_visual_base_4" type="mesh" mesh="visual_base_4" pos="0 0 0" euler="0 0 0" rgba="0.023529411764705882 0.023529411764705882 0.023529411764705882 1.0" group="1" contype="0" conaffinity="0" mass="0" />
     </body>
-    <geom name="floor" type="plane" size="0 0 0.1" friction="0.8 0 0" condim="3" contype="2" conaffinity="1" rgba="0.25 0.29 0.32 1" />
-    <light pos="0 -2 3" dir="0 0 -1" />
+    <geom name="floor" type="plane" size="0 0 0.1" friction="0.8 0 0" condim="3" contype="2" conaffinity="1" rgba="0.25 0.29 0.32 1" material="ground" />
   </worldbody>
   <option timestep="0.002" integrator="implicitfast" iterations="50" gravity="0 0 -9.81" />
   <actuator>
@@ -128,4 +157,29 @@
     <gyro name="imu_gyro" site="imu" />
     <accelerometer name="imu_accel" site="imu" />
   </sensor>
+  <asset>
+    <mesh name="visual_base_0" file="../meshes/mujoco/base_0.obj" scale="1 1 1" />
+    <mesh name="visual_base_1" file="../meshes/mujoco/base_1.obj" scale="1 1 1" />
+    <mesh name="visual_base_2" file="../meshes/mujoco/base_2.obj" scale="1 1 1" />
+    <mesh name="visual_base_3" file="../meshes/mujoco/base_3.obj" scale="1 1 1" />
+    <mesh name="visual_base_4" file="../meshes/mujoco/base_4.obj" scale="1 1 1" />
+    <mesh name="visual_hip_0" file="../meshes/mujoco/hip_0.obj" scale="1 1 1" />
+    <mesh name="visual_hip_1" file="../meshes/mujoco/hip_1.obj" scale="1 1 1" />
+    <mesh name="visual_thigh_0" file="../meshes/mujoco/thigh_0.obj" scale="1 1 1" />
+    <mesh name="visual_thigh_1" file="../meshes/mujoco/thigh_1.obj" scale="1 1 1" />
+    <mesh name="visual_calf_0" file="../meshes/calf.stl" scale="1 1 1" />
+    <mesh name="visual_left_wheel_0" file="../meshes/mujoco/left_wheel_0.obj" scale="1 1 1" />
+    <mesh name="visual_thigh_mirror_0" file="../meshes/mujoco/thigh_mirror_0.obj" scale="1 1 1" />
+    <mesh name="visual_thigh_mirror_1" file="../meshes/mujoco/thigh_mirror_1.obj" scale="1 1 1" />
+    <mesh name="visual_calf_mirror_0" file="../meshes/calf_mirror.stl" scale="1 1 1" />
+    <mesh name="visual_right_wheel_0" file="../meshes/mujoco/right_wheel_0.obj" scale="1 1 1" />
+    <texture name="ground_grid" type="2d" builtin="checker" rgb1="0.20 0.24 0.28" rgb2="0.28 0.33 0.37" width="512" height="512" />
+    <material name="ground" texture="ground_grid" texrepeat="8 8" texuniform="true" reflectance="0" />
+    <texture name="sky" type="skybox" builtin="gradient" rgb1="0.30 0.45 0.60" rgb2="0.06 0.09 0.13" width="512" height="3072" />
+  </asset>
+  <visual>
+    <headlight ambient="0.2 0.2 0.2" diffuse="0.4 0.4 0.4" specular="0.1 0.1 0.1" />
+    <global offwidth="1600" offheight="1000" />
+    <quality shadowsize="2048" offsamples="4" />
+  </visual>
 </mujoco>

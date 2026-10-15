@@ -13,7 +13,8 @@ from pathlib import Path
 
 import numpy as np
 
-from .config import MODEL, ROOT
+from .config import KEYBOARD_SPEED, KEYBOARD_TURN_RATE, MODEL, ROOT
+from .terrain import KINDS, build_scene, settings
 
 
 def main():
@@ -29,9 +30,30 @@ def main():
         default=MODEL,
         help="MuJoCo scene (default: resources/robots/go2w/xml/go2w.xml)",
     )
+    p.add_argument("--terrain", choices=KINDS, default="mixed")
+    p.add_argument(
+        "--terrain-level", type=int, default=0, help="Training curriculum row (0-9)"
+    )
+    p.add_argument("--terrain-seed", type=int, default=0)
     p.add_argument("--domain", type=int, default=71)
     p.add_argument("--command", type=float, nargs=3, default=[0.0, 0.0, 0.0])
-    p.add_argument("--schedule", type=Path)
+    commands = p.add_mutually_exclusive_group()
+    commands.add_argument("--schedule", type=Path)
+    commands.add_argument(
+        "--keyboard", action="store_true", help="Hold 1/2 to move, 3/4 to turn"
+    )
+    p.add_argument(
+        "--speed",
+        type=float,
+        default=KEYBOARD_SPEED,
+        help="Keyboard forward/reverse speed (m/s)",
+    )
+    p.add_argument(
+        "--turn-rate",
+        type=float,
+        default=KEYBOARD_TURN_RATE,
+        help="Keyboard yaw rate (rad/s)",
+    )
     p.add_argument("--output", type=Path)
     args = p.parse_args()
     if (
@@ -40,7 +62,16 @@ def main():
         or not 1 <= args.domain <= 200
     ):
         p.error("Use finite duration >= 0 and a nonzero simulation DDS domain <= 200")
-    policy = args.policy
+    if args.keyboard and args.headless:
+        p.error("--keyboard requires a visible MuJoCo window")
+    if args.keyboard and any(args.command):
+        p.error("Use --speed/--turn-rate with --keyboard instead of --command")
+    if not all(np.isfinite(v) and v > 0 for v in (args.speed, args.turn_rate)):
+        p.error("--speed and --turn-rate must be finite and positive")
+    if not 0 <= args.terrain_level < settings()["num_rows"]:
+        p.error("--terrain-level must be within the training curriculum rows")
+    if not 0 <= args.terrain_seed < 2**32:
+        p.error("--terrain-seed must be in [0, 2**32)")
     output = args.output or ROOT / "logs/sim2sim" / datetime.datetime.now().strftime(
         "%Y%m%d-%H%M%S-%f"
     )
@@ -51,11 +82,27 @@ def main():
     # Keep the policy and its metadata together for each run.
     inputs = output / "inputs"
     inputs.mkdir(exist_ok=True)
-    shutil.copyfile(policy, inputs / "policy.pt")
+    shutil.copyfile(args.policy, inputs / "policy.pt")
     shutil.copyfile(
-        args.metadata or policy.with_name("metadata.json"), inputs / "metadata.json"
+        args.metadata or args.policy.with_name("metadata.json"),
+        inputs / "metadata.json",
     )
     policy = inputs / "policy.pt"
+    spawn = [0.0, 0.0, 0.0]
+    if args.terrain != "flat":
+        scene = output / "scene.xml"
+        terrain = build_scene(
+            args.model.resolve(),
+            scene,
+            args.terrain,
+            args.terrain_level,
+            args.terrain_seed,
+        )
+        args.model, spawn = scene, terrain["spawn"]
+        print(
+            f"Terrain: {args.terrain}, level {args.terrain_level}, spawn {spawn}",
+            flush=True,
+        )
     env = os.environ.copy()
     env["PYTORCH_ENABLE_MPS_FALLBACK"] = "0"
     env["PYTHONUNBUFFERED"] = "1"
@@ -75,9 +122,19 @@ def main():
         str(args.duration),
         "--report",
         str(output / "simulator.json"),
+        "--spawn",
+        *map(str, spawn),
     ]
     if args.headless:
         sim.append("--headless")
+    if args.keyboard:
+        sim += [
+            "--keyboard",
+            "--speed",
+            str(args.speed),
+            "--turn-rate",
+            str(args.turn_rate),
+        ]
     control = [
         sys.executable,
         "-m",
@@ -96,6 +153,8 @@ def main():
         *map(str, args.command),
     ]
     control += ["--metadata", str(inputs / "metadata.json")]
+    if args.keyboard:
+        control.append("--keyboard")
     if args.schedule:
         shutil.copyfile(args.schedule, inputs / "schedule.json")
         control += ["--schedule", str(inputs / "schedule.json")]

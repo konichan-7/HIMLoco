@@ -1,5 +1,6 @@
 """Compile the pinned Unitree-derived URDF with local cylinder wheel collisions."""
 
+import os
 import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -10,6 +11,10 @@ import numpy as np
 from .config import JOINTS, MODEL, PHYSICS_DT, ROOT
 
 SOURCE = ROOT / "legged_gym/resources/robots/go2w/urdf/go2w.urdf"
+
+
+def numbers(values):
+    return " ".join(format(v, ".17g") for v in values)
 
 
 def combined_inertias(urdf):
@@ -72,6 +77,106 @@ def combined_inertias(urdf):
     return combined
 
 
+def add_visuals(root, source, urdf, output):
+    """Share source STL assets; convert only unsupported DAE material parts."""
+    import trimesh
+
+    asset = ET.SubElement(root, "asset")
+    meshes = {}
+    for link in urdf.findall("link"):
+        body = root.find(f".//body[@name='{link.get('name')}']")
+        for index, visual in enumerate(link.findall("visual")):
+            if body is None:
+                raise ValueError(f"Missing visual body: {link.get('name')}")
+            mesh = visual.find("geometry/mesh")
+            path = (source.parent / mesh.get("filename")).resolve()
+            # Pinned Gym-only DAE wrappers reproduce these source STLs exactly.
+            if path.name in ("calf.dae", "calf_mirror.dae"):
+                path = path.with_suffix(".stl")
+            if path not in meshes:
+                fallback = visual.find("material/color")
+                rgba = (
+                    fallback.get("rgba") if fallback is not None else "0.15 0.15 0.15 1"
+                )
+                parts = []
+                if path.suffix.lower() in (".stl", ".obj", ".msh"):
+                    name = f"visual_{path.stem}_0"
+                    ET.SubElement(
+                        asset,
+                        "mesh",
+                        name=name,
+                        file=os.path.relpath(path, output.parent),
+                        scale=mesh.get("scale", "1 1 1"),
+                    )
+                    parts.append((name, rgba))
+                else:
+                    scene = trimesh.load(path, force="scene", process=False)
+                    for part, node in enumerate(scene.graph.nodes_geometry):
+                        transform, geometry = scene.graph[node]
+                        shape = scene.geometry[geometry].copy()
+                        shape.apply_transform(transform)
+                        target = (
+                            output.parent.parent
+                            / "meshes/mujoco"
+                            / f"{path.stem}_{part}.obj"
+                        )
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        shape.export(target, include_color=False, include_texture=False)
+                        name = f"visual_{path.stem}_{part}"
+                        ET.SubElement(
+                            asset,
+                            "mesh",
+                            name=name,
+                            file=os.path.relpath(target, output.parent),
+                            scale=mesh.get("scale", "1 1 1"),
+                        )
+                        material = getattr(shape.visual, "material", None)
+                        color = getattr(material, "baseColorFactor", None)
+                        rgba = (
+                            " ".join(str(float(v) / 255) for v in color)
+                            if color is not None
+                            else fallback.get("rgba")
+                            if fallback is not None
+                            else "0.15 0.15 0.15 1"
+                        )
+                        parts.append((name, rgba))
+                meshes[path] = parts
+            origin = visual.find("origin")
+            for name, rgba in meshes[path]:
+                ET.SubElement(
+                    body,
+                    "geom",
+                    name=f"{link.get('name')}_visual_{index}_{name}",
+                    type="mesh",
+                    mesh=name,
+                    pos=origin.get("xyz", "0 0 0"),
+                    euler=origin.get("rpy", "0 0 0"),
+                    rgba=rgba,
+                    group="1",
+                    contype="0",
+                    conaffinity="0",
+                    mass="0",
+                )
+    asset.extend(
+        ET.fromstring("""<asset>
+      <texture name="ground_grid" type="2d" builtin="checker"
+               rgb1="0.20 0.24 0.28" rgb2="0.28 0.33 0.37" width="512" height="512"/>
+      <material name="ground" texture="ground_grid" texrepeat="8 8"
+                texuniform="true" reflectance="0"/>
+      <texture name="sky" type="skybox" builtin="gradient"
+               rgb1="0.30 0.45 0.60" rgb2="0.06 0.09 0.13" width="512" height="3072"/>
+    </asset>""")
+    )
+    root.find("worldbody/geom[@name='floor']").set("material", "ground")
+    root.append(
+        ET.fromstring("""<visual>
+      <headlight ambient="0.2 0.2 0.2" diffuse="0.4 0.4 0.4" specular="0.1 0.1 0.1"/>
+      <global offwidth="1600" offheight="1000"/>
+      <quality shadowsize="2048" offsamples="4"/>
+    </visual>""")
+    )
+
+
 def build(output=MODEL, source=SOURCE):
     source, output = Path(source).resolve(), Path(output).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -82,6 +187,7 @@ def build(output=MODEL, source=SOURCE):
     torque_limits = {
         n: float(urdf.find(f"joint[@name='{n}']/limit").get("effort")) for n in JOINTS
     }
+    visual_urdf = ET.fromstring(ET.tostring(urdf))
     for link in urdf.findall("link"):
         for visual in link.findall("visual"):
             link.remove(visual)
@@ -103,35 +209,36 @@ def build(output=MODEL, source=SOURCE):
         imported_path = Path(temporary) / "imported.xml"
         mujoco.mj_saveLastXML(str(imported_path), imported)
         root = ET.parse(imported_path).getroot()
-    # Keep primitive collision transforms at compiler precision, rather than
-    # truncating the fused fixed-link transforms to saveLastXML's six digits.
+    # One pass restores compiler-precision collisions and explicit fixed-link
+    # inertias (MuJoCo's fixed-link fusion shifts the wheel-motor COM).
     for body in root.findall(".//body"):
-        compiled = imported.body(body.get("name"))
+        name = body.get("name")
+        compiled = imported.body(name)
         indices = range(compiled.geomadr[0], compiled.geomadr[0] + compiled.geomnum[0])
-        for geom, index in zip(body.findall("geom"), indices, strict=True):
-            geom.set(
-                "pos", " ".join(format(v, ".17g") for v in imported.geom_pos[index])
+        for i, (geom, index) in enumerate(
+            zip(body.findall("geom"), indices, strict=True)
+        ):
+            geom.attrib.update(
+                name=f"{name}_collision_{i}",
+                pos=numbers(imported.geom_pos[index]),
+                quat=numbers(imported.geom_quat[index]),
+                group="3",
+                friction="0.8 0 0",
+                condim="3",
+                contype="1",
+                conaffinity="2",
+                rgba="0.55 0.62 0.70 1",
             )
-            geom.set(
-                "quat", " ".join(format(v, ".17g") for v in imported.geom_quat[index])
-            )
-    # MuJoCo 3.3.7 fixed-link fusion shifts the wheel-motor COM; restore the
-    # explicit parallel-axis result. See docs/sim2sim_known_issues.md.
-    for body in root.findall(".//body"):
-        if body.get("name") not in inertias:
-            continue
-        mass, center, tensor = inertias[body.get("name")]
-        inertial = body.find("inertial")
-        inertial.attrib.clear()
-        inertial.set("mass", format(mass, ".17g"))
-        inertial.set("pos", " ".join(format(v, ".17g") for v in center))
-        inertial.set(
-            "fullinertia",
-            " ".join(
-                format(tensor[i, j], ".17g")
-                for i, j in ((0, 0), (1, 1), (2, 2), (0, 1), (0, 2), (1, 2))
-            ),
-        )
+        if name in inertias:
+            mass, center, tensor = inertias[name]
+            body.find("inertial").attrib = {
+                "mass": format(mass, ".17g"),
+                "pos": numbers(center),
+                "fullinertia": numbers(
+                    tensor[i, j]
+                    for i, j in ((0, 0), (1, 1), (2, 2), (0, 1), (0, 2), (1, 2))
+                ),
+            }
     # Preserve URDF radians exactly instead of saveLastXML's six-digit ranges.
     for joint in root.findall(".//joint"):
         source_joint = urdf.find(f"joint[@name='{joint.get('name')}']")
@@ -139,36 +246,21 @@ def build(output=MODEL, source=SOURCE):
             limit = source_joint.find("limit")
             joint.set("range", limit.get("lower") + " " + limit.get("upper"))
     root.find("compiler").set("inertiafromgeom", "false")
-    ET.SubElement(
-        root,
-        "option",
-        timestep=str(PHYSICS_DT),
-        integrator="implicitfast",
-        iterations="50",
-        gravity="0 0 -9.81",
+    root.append(
+        ET.fromstring(f"""<option timestep="{PHYSICS_DT}"
+        integrator="implicitfast" iterations="50" gravity="0 0 -9.81"/>""")
     )
     world = root.find("worldbody")
-    ET.SubElement(
-        world,
-        "geom",
-        name="floor",
-        type="plane",
-        size="0 0 0.1",
-        friction="0.8 0 0",
-        condim="3",
-        contype="2",
-        conaffinity="1",
-        rgba="0.25 0.29 0.32 1",
+    world.append(
+        ET.fromstring("""<geom name="floor" type="plane" size="0 0 0.1"
+        friction="0.8 0 0" condim="3" contype="2" conaffinity="1"
+        rgba="0.25 0.29 0.32 1"/>""")
     )
-    ET.SubElement(world, "light", pos="0 -2 3", dir="0 0 -1")
-    for body in world.iter("body"):
-        for i, geom in enumerate(body.findall("geom")):
-            geom.set("name", body.get("name") + f"_collision_{i}")
-            geom.set("friction", "0.8 0 0")
-            geom.set("condim", "3")
-            geom.set("contype", "1")
-            geom.set("conaffinity", "2")
-            geom.set("rgba", "0.55 0.62 0.70 1")
+    world.find("body[@name='base']").append(
+        ET.fromstring("""<light name="key_light"
+        ambient="0.1 0.1 0.1" diffuse="0.5 0.5 0.5" specular="0.1 0.1 0.1"
+        mode="trackcom" directional="true" pos="0 -2 3" dir="0.2 0.4 -1"/>""")
+    )
     # These are scene choices, not undocumented properties of the URDF.
     base = world.find("body[@name='base']")
     imu_joint = urdf.find("joint[@name='imu_joint']")
@@ -198,6 +290,7 @@ def build(output=MODEL, source=SOURCE):
     ET.SubElement(sensors, "framequat", name="imu_quat", objtype="site", objname="imu")
     ET.SubElement(sensors, "gyro", name="imu_gyro", site="imu")
     ET.SubElement(sensors, "accelerometer", name="imu_accel", site="imu")
+    add_visuals(root, source, visual_urdf, output)
     ET.indent(root)
     ET.ElementTree(root).write(output, encoding="unicode")
     model = mujoco.MjModel.from_xml_path(str(output))
@@ -216,7 +309,9 @@ def build(output=MODEL, source=SOURCE):
         if geom.type[0] != mujoco.mjtGeom.mjGEOM_CYLINDER or not np.isclose(
             abs(axle @ joint_axis), 1.0, atol=1e-10
         ):
-            raise ValueError(f"{leg} wheel collision must be a cylinder along its joint axis")
+            raise ValueError(
+                f"{leg} wheel collision must be a cylinder along its joint axis"
+            )
     return output
 
 
