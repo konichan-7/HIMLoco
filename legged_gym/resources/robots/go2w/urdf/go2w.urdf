@@ -144,7 +144,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/calf.stl" />
+        <mesh filename="../meshes/calf.dae" />
       </geometry>
       <material name="">
         <color rgba="1 1 1 1" />
@@ -233,12 +233,12 @@
       </geometry>
     </collision>
   </link>
-  <joint name="FL_foot_joint" type="continuous">
+  <joint name="FL_foot_joint" type="revolute">
     <origin xyz="0 0 -0.2264" rpy="0 0 0" />
     <parent link="FL_calf" />
     <child link="FL_foot" />
     <axis xyz="0 1 0" />
-    <limit effort="23.7" velocity="30.1" />
+    <limit effort="23.7" velocity="30.1" lower="-999999" upper="999999" />
   </joint>
   <link name="FR_hip">
     <inertial>
@@ -313,7 +313,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/calf_mirror.stl" />
+        <mesh filename="../meshes/calf_mirror.dae" />
       </geometry>
       <material name="">
         <color rgba="1 1 1 1" />
@@ -402,12 +402,12 @@
       </geometry>
     </collision>
   </link>
-  <joint name="FR_foot_joint" type="continuous">
+  <joint name="FR_foot_joint" type="revolute">
     <origin xyz="0 0 -0.2264" rpy="0 0 0" />
     <parent link="FR_calf" />
     <child link="FR_foot" />
     <axis xyz="0 1 0" />
-    <limit effort="23.7" velocity="30.1" />
+    <limit effort="23.7" velocity="30.1" lower="-999999" upper="999999" />
   </joint>
   <link name="RL_hip">
     <inertial>
@@ -482,7 +482,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/calf.stl" />
+        <mesh filename="../meshes/calf.dae" />
       </geometry>
       <material name="">
         <color rgba="1 1 1 1" />
@@ -571,12 +571,12 @@
       </geometry>
     </collision>
   </link>
-  <joint name="RL_foot_joint" type="continuous">
+  <joint name="RL_foot_joint" type="revolute">
     <origin xyz="0.0 0 -0.2264" rpy="0 0 0" />
     <parent link="RL_calf" />
     <child link="RL_foot" />
     <axis xyz="0 1 0" />
-    <limit effort="23.7" velocity="30.1" />
+    <limit effort="23.7" velocity="30.1" lower="-999999" upper="999999" />
   </joint>
   <link name="RR_hip">
     <inertial>
@@ -651,7 +651,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/calf_mirror.stl" />
+        <mesh filename="../meshes/calf_mirror.dae" />
       </geometry>
       <material name="">
         <color rgba="1 1 1 1" />
@@ -740,12 +740,12 @@
       </geometry>
     </collision>
   </link>
-  <joint name="RR_foot_joint" type="continuous">
+  <joint name="RR_foot_joint" type="revolute">
     <origin xyz="-0.0 0 -0.2264" rpy="0 0 0" />
     <parent link="RR_calf" />
     <child link="RR_foot" />
     <axis xyz="0 1 0" />
-    <limit effort="23.7" velocity="30.1" />
+    <limit effort="23.7" velocity="30.1" lower="-999999" upper="999999" />
   </joint>
   <link name="imu">
     <inertial>

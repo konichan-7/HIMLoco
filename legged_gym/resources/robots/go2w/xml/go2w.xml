@@ -20,11 +20,11 @@
             <joint name="FL_calf_joint" pos="0 0 0" axis="0 1 0" range="-2.7227 -0.83776" actuatorfrcrange="-35.55 35.55" />
             <geom size="0.012 0.06" pos="0.0080000000000000002 0 -0.059999999999999998" quat="0.9944925627484974 0 -0.10480716882888248 0" type="cylinder" name="FL_calf_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <geom size="0.011 0.0325" pos="0.02 0 -0.14799999999999999" quat="0.99968751627570263 0 0.024997395914712332 0" type="cylinder" name="FL_calf_collision_1" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133025 0 0.26190926814952442 0" type="cylinder" name="FL_calf_collision_2" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133036 0 0.26190926814952442 0" type="cylinder" name="FL_calf_collision_2" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <geom size="0.05 0.025" pos="0 0.01 -0.22639999999999999" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="FL_calf_collision_3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <body name="FL_foot" pos="0 0 -0.2264">
               <inertial mass="0.52000000000000002" pos="0 0.059999999999999998 0" fullinertia="0.00069999999999999999 0.0011999999999999999 0.00069999999999999999 0 0 0" />
-              <joint name="FL_foot_joint" pos="0 0 0" axis="0 1 0" actuatorfrcrange="-23.7 23.7" />
+              <joint name="FL_foot_joint" pos="0 0 0" axis="0 1 0" range="-999999 999999" actuatorfrcrange="-23.7 23.7" />
               <geom size="0.086 0.0225" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" pos="0 0 0" name="FL_foot_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             </body>
           </body>
@@ -43,11 +43,11 @@
             <joint name="FR_calf_joint" pos="0 0 0" axis="0 1 0" range="-2.7227 -0.83776" actuatorfrcrange="-35.55 35.55" />
             <geom size="0.013 0.06" pos="0.01 0 -0.059999999999999998" quat="0.99500416527802582 0 -0.099833416646828155 0" type="cylinder" name="FR_calf_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <geom size="0.011 0.0325" pos="0.02 0 -0.14799999999999999" quat="0.99968751627570263 0 0.024997395914712332 0" type="cylinder" name="FR_calf_collision_1" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133025 0 0.26190926814952442 0" type="cylinder" name="FR_calf_collision_2" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133036 0 0.26190926814952442 0" type="cylinder" name="FR_calf_collision_2" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <geom size="0.05 0.025" pos="0 -0.01 -0.22639999999999999" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="FR_calf_collision_3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <body name="FR_foot" pos="0 0 -0.2264">
               <inertial mass="0.52000000000000002" pos="0 -0.059999999999999998 0" fullinertia="0.00069999999999999999 0.0011999999999999999 0.00069999999999999999 0 0 0" />
-              <joint name="FR_foot_joint" pos="0 0 0" axis="0 1 0" actuatorfrcrange="-23.7 23.7" />
+              <joint name="FR_foot_joint" pos="0 0 0" axis="0 1 0" range="-999999 999999" actuatorfrcrange="-23.7 23.7" />
               <geom size="0.086 0.0225" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" pos="0 -0 0" name="FR_foot_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             </body>
           </body>
@@ -66,11 +66,11 @@
             <joint name="RL_calf_joint" pos="0 0 0" axis="0 1 0" range="-2.7227 -0.83776" actuatorfrcrange="-35.55 35.55" />
             <geom size="0.013 0.06" pos="0.01 0 -0.059999999999999998" quat="0.99500416527802582 0 -0.099833416646828155 0" type="cylinder" name="RL_calf_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <geom size="0.011 0.0325" pos="0.02 0 -0.14799999999999999" quat="0.99968751627570263 0 0.024997395914712332 0" type="cylinder" name="RL_calf_collision_1" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133025 0 0.26190926814952442 0" type="cylinder" name="RL_calf_collision_2" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133036 0 0.26190926814952442 0" type="cylinder" name="RL_calf_collision_2" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <geom size="0.05 0.025" pos="0 0.01 -0.22639999999999999" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="RL_calf_collision_3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <body name="RL_foot" pos="0 0 -0.2264">
               <inertial mass="0.52000000000000002" pos="0 0.059999999999999998 0" fullinertia="0.00069999999999999999 0.0011999999999999999 0.00069999999999999999 0 0 0" />
-              <joint name="RL_foot_joint" pos="0 0 0" axis="0 1 0" actuatorfrcrange="-23.7 23.7" />
+              <joint name="RL_foot_joint" pos="0 0 0" axis="0 1 0" range="-999999 999999" actuatorfrcrange="-23.7 23.7" />
               <geom size="0.086 0.0225" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" pos="0 0 0" name="RL_foot_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             </body>
           </body>
@@ -89,11 +89,11 @@
             <joint name="RR_calf_joint" pos="0 0 0" axis="0 1 0" range="-2.7227 -0.83776" actuatorfrcrange="-35.55 35.55" />
             <geom size="0.013 0.06" pos="0.01 0 -0.059999999999999998" quat="0.99500416527802582 0 -0.099833416646828155 0" type="cylinder" name="RR_calf_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <geom size="0.011 0.0325" pos="0.02 0 -0.14799999999999999" quat="0.99968751627570263 0 0.024997395914712332 0" type="cylinder" name="RR_calf_collision_1" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
-            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133025 0 0.26190926814952442 0" type="cylinder" name="RR_calf_collision_2" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
+            <geom size="0.0155 0.015" pos="0.0080133306252232039 0 -0.18745021872309187" quat="0.96509250088133036 0 0.26190926814952442 0" type="cylinder" name="RR_calf_collision_2" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <geom size="0.05 0.025" pos="0 -0.01 -0.22639999999999999" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" name="RR_calf_collision_3" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             <body name="RR_foot" pos="0 0 -0.2264">
               <inertial mass="0.52000000000000002" pos="0 -0.059999999999999998 0" fullinertia="0.00069999999999999999 0.0011999999999999999 0.00069999999999999999 0 0 0" />
-              <joint name="RR_foot_joint" pos="0 0 0" axis="0 1 0" actuatorfrcrange="-23.7 23.7" />
+              <joint name="RR_foot_joint" pos="0 0 0" axis="0 1 0" range="-999999 999999" actuatorfrcrange="-23.7 23.7" />
               <geom size="0.086 0.0225" quat="0.70710678118654757 0.70710678118654746 0 0" type="cylinder" pos="0 -0 0" name="RR_foot_collision_0" friction="0.8 0 0" condim="3" contype="1" conaffinity="2" rgba="0.55 0.62 0.70 1" />
             </body>
           </body>
