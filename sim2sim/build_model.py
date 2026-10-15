@@ -1,134 +1,230 @@
-"""Adapt Unitree's upstream Go2W MJCF to the local DDS sim2sim contract."""
+"""Compile the pinned Unitree-derived URDF with local cylinder wheel collisions."""
 
-import hashlib
-import json
-import os
+import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import mujoco
 import numpy as np
 
-from .config import JOINTS, LIMITS, MODEL, NOMINAL, PHYSICS_DT, ROOT
+from .config import JOINTS, MODEL, PHYSICS_DT, ROOT
 
-RESOURCES = ROOT / "legged_gym/resources/robots/go2w"
-SOURCE = RESOURCES / "xml/go2w.xml"
-ASSETS = RESOURCES / "meshes"
-SOURCE_COMMIT = "1eb6642e3f3fdfb7fb13a9794fd6a2dd93ea0e7d"
+SOURCE = ROOT / "legged_gym/resources/robots/go2w/urdf/go2w.urdf"
 
 
-def build():
-    """Build the runtime model without modifying the vendored upstream inputs."""
-    MODEL.parent.mkdir(parents=True, exist_ok=True)
-    mjcf = ET.parse(SOURCE).getroot()
-    compiler = mjcf.find("compiler")
-    compiler.set(
-        "meshdir",
-        os.path.relpath(ASSETS, MODEL.parent),
+def combined_inertias(urdf):
+    """Combine explicit fixed-link inertias in each moving link's frame."""
+    links = {link.get("name"): link for link in urdf.findall("link")}
+    children = {}
+    for joint in urdf.findall("joint"):
+        children.setdefault(joint.find("parent").get("link"), []).append(joint)
+    groups = {}
+
+    def transform(element):
+        if element is None:
+            return np.eye(4)
+        angles = np.fromstring(element.get("rpy", "0 0 0"), sep=" ")
+        cr, cp, cy = np.cos(angles)
+        sr, sp, sy = np.sin(angles)
+        matrix = np.eye(4)
+        matrix[:3, :3] = [
+            [cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr],
+            [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr],
+            [-sp, cp * sr, cp * cr],
+        ]
+        matrix[:3, 3] = np.fromstring(element.get("xyz", "0 0 0"), sep=" ")
+        return matrix
+
+    def walk(name, group, frame):
+        inertial = links[name].find("inertial")
+        if inertial is not None:
+            mass = float(inertial.find("mass").get("value"))
+            if mass > 0:
+                pose = frame @ transform(inertial.find("origin"))
+                values = inertial.find("inertia").attrib
+                xx, yy, zz, xy, xz, yz = (
+                    float(values[k]) for k in ("ixx", "iyy", "izz", "ixy", "ixz", "iyz")
+                )
+                tensor = np.array([[xx, xy, xz], [xy, yy, yz], [xz, yz, zz]])
+                rotation = pose[:3, :3]
+                groups.setdefault(group, []).append(
+                    (mass, pose[:3, 3], rotation @ tensor @ rotation.T)
+                )
+        for joint in children.get(name, []):
+            child = joint.find("child").get("link")
+            fixed = joint.get("type") == "fixed"
+            walk(
+                child,
+                group if fixed else child,
+                frame @ transform(joint.find("origin")) if fixed else np.eye(4),
+            )
+
+    walk("base", "base", np.eye(4))
+    combined = {}
+    for name, parts in groups.items():
+        mass = sum(p[0] for p in parts)
+        center = sum(m * p for m, p, _ in parts) / mass
+        tensor = np.zeros((3, 3))
+        for m, p, inertia in parts:
+            d = p - center
+            tensor += inertia + m * (np.dot(d, d) * np.eye(3) - np.outer(d, d))
+        combined[name] = mass, center, tensor
+    return combined
+
+
+def build(output=MODEL, source=SOURCE):
+    source, output = Path(source).resolve(), Path(output).resolve()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    urdf = ET.parse(source).getroot()
+    if urdf.findall("link/collision/geometry/mesh"):
+        raise ValueError("This Go2W builder supports primitive collisions only")
+    inertias = combined_inertias(urdf)
+    torque_limits = {
+        n: float(urdf.find(f"joint[@name='{n}']/limit").get("effort")) for n in JOINTS
+    }
+    for link in urdf.findall("link"):
+        for visual in link.findall("visual"):
+            link.remove(visual)
+    # Without an explicit floating parent, a URDF importer can fuse base inertia
+    # into the fixed world. Explicit inertias must never be inferred from geoms.
+    ET.SubElement(urdf, "link", name="world")
+    floating = ET.SubElement(urdf, "joint", name="floating_base", type="floating")
+    ET.SubElement(floating, "parent", link="world")
+    ET.SubElement(floating, "child", link="base")
+    extension = ET.SubElement(urdf, "mujoco")
+    ET.SubElement(
+        extension,
+        "compiler",
+        fusestatic="true",
+        inertiafromgeom="false",
     )
-
-    # The upstream MJCF calls these wheel joints; the policy/SDK contract in
-    # this repository uses the robot's LowState names (foot_joint).
-    for element in mjcf.iter():
-        if element.tag == "joint" and element.get("name", "").endswith(
-            "_wheel_joint"
-        ):
-            element.set(
-                "name", element.get("name").replace("_wheel_joint", "_foot_joint")
+    imported = mujoco.MjModel.from_xml_string(ET.tostring(urdf, encoding="unicode"))
+    with tempfile.TemporaryDirectory() as temporary:
+        imported_path = Path(temporary) / "imported.xml"
+        mujoco.mj_saveLastXML(str(imported_path), imported)
+        root = ET.parse(imported_path).getroot()
+    # Keep primitive collision transforms at compiler precision, rather than
+    # truncating the fused fixed-link transforms to saveLastXML's six digits.
+    for body in root.findall(".//body"):
+        compiled = imported.body(body.get("name"))
+        indices = range(compiled.geomadr[0], compiled.geomadr[0] + compiled.geomnum[0])
+        for geom, index in zip(body.findall("geom"), indices, strict=True):
+            geom.set(
+                "pos", " ".join(format(v, ".17g") for v in imported.geom_pos[index])
             )
-        if element.get("joint", "").endswith("_wheel_joint"):
-            element.set(
-                "joint", element.get("joint").replace("_wheel_joint", "_foot_joint")
+            geom.set(
+                "quat", " ".join(format(v, ".17g") for v in imported.geom_quat[index])
             )
-
-    option = mjcf.find("option")
-    option.set("timestep", str(PHYSICS_DT))
-    option.set("integrator", "implicitfast")
-    option.set("iterations", "50")
-
-    # Use policy-order actuator names and the same torque limits as the
-    # LowCmd feedback model. Upstream actuator order follows SDK order instead.
-    limits = dict(zip(JOINTS, LIMITS))
-    for actuator in mjcf.findall("actuator/*"):
-        joint = actuator.get("joint")
-        actuator.set("name", joint + "_motor")
-        limit = float(limits[joint])
-        actuator.set("ctrllimited", "true")
-        actuator.set("ctrlrange", f"{-limit:g} {limit:g}")
-
-    for sensor in mjcf.findall("sensor/*"):
-        if sensor.get("name") == "imu_acc":
-            sensor.set("name", "imu_accel")
-
-    world = mjcf.find("worldbody")
+    # MuJoCo 3.3.7 fixed-link fusion shifts the wheel-motor COM; restore the
+    # explicit parallel-axis result. See docs/sim2sim_known_issues.md.
+    for body in root.findall(".//body"):
+        if body.get("name") not in inertias:
+            continue
+        mass, center, tensor = inertias[body.get("name")]
+        inertial = body.find("inertial")
+        inertial.attrib.clear()
+        inertial.set("mass", format(mass, ".17g"))
+        inertial.set("pos", " ".join(format(v, ".17g") for v in center))
+        inertial.set(
+            "fullinertia",
+            " ".join(
+                format(tensor[i, j], ".17g")
+                for i, j in ((0, 0), (1, 1), (2, 2), (0, 1), (0, 2), (1, 2))
+            ),
+        )
+    # Preserve URDF radians exactly instead of saveLastXML's six-digit ranges.
+    for joint in root.findall(".//joint"):
+        source_joint = urdf.find(f"joint[@name='{joint.get('name')}']")
+        if source_joint is not None and source_joint.get("type") == "revolute":
+            limit = source_joint.find("limit")
+            joint.set("range", limit.get("lower") + " " + limit.get("upper"))
+    root.find("compiler").set("inertiafromgeom", "false")
+    ET.SubElement(
+        root,
+        "option",
+        timestep=str(PHYSICS_DT),
+        integrator="implicitfast",
+        iterations="50",
+        gravity="0 0 -9.81",
+    )
+    world = root.find("worldbody")
     ET.SubElement(
         world,
         "geom",
         name="floor",
         type="plane",
         size="0 0 0.1",
-        rgba=".25 .29 .32 1",
-        friction=".8 .005 .0001",
-        condim="6",
+        friction="0.8 0 0",
+        condim="3",
+        contype="2",
+        conaffinity="1",
+        rgba="0.25 0.29 0.32 1",
     )
+    ET.SubElement(world, "light", pos="0 -2 3", dir="0 0 -1")
+    for body in world.iter("body"):
+        for i, geom in enumerate(body.findall("geom")):
+            geom.set("name", body.get("name") + f"_collision_{i}")
+            geom.set("friction", "0.8 0 0")
+            geom.set("condim", "3")
+            geom.set("contype", "1")
+            geom.set("conaffinity", "2")
+            geom.set("rgba", "0.55 0.62 0.70 1")
+    # These are scene choices, not undocumented properties of the URDF.
+    base = world.find("body[@name='base']")
+    imu_joint = urdf.find("joint[@name='imu_joint']")
+    if imu_joint.find("parent").get("link") != "base":
+        raise ValueError("Expected the pinned URDF IMU frame to be fixed to base")
+    imu_origin = imu_joint.find("origin")
     ET.SubElement(
-        world,
-        "light",
-        name="key_light",
-        pos="0 -2 3",
-        dir="0 0 -1",
-        diffuse=".8 .8 .8",
+        base,
+        "site",
+        name="imu",
+        pos=imu_origin.get("xyz"),
+        euler=imu_origin.get("rpy"),
+        size="0.005",
     )
-    ET.indent(mjcf)
-    ET.ElementTree(mjcf).write(MODEL, encoding="unicode", xml_declaration=True)
-
-    model = mujoco.MjModel.from_xml_path(str(MODEL))
-    if model.nu != 16 or model.nq != 23 or model.nv != 22:
-        raise RuntimeError(
-            f"Unexpected upstream Go2W dimensions nq/nv/nu="
-            f"{model.nq}/{model.nv}/{model.nu}"
+    actuators = ET.SubElement(root, "actuator")
+    for name in JOINTS:
+        limit = torque_limits[name]
+        ET.SubElement(
+            actuators,
+            "motor",
+            name=name + "_motor",
+            joint=name,
+            ctrlrange=f"{-limit} {limit}",
+            ctrllimited="true",
         )
-    info = {
-        "source_repository": "https://github.com/unitreerobotics/unitree_mujoco",
-        "source_commit": SOURCE_COMMIT,
-        "source_path": "unitree_robots/go2w/go2w.xml",
-        "local_source_path": str(SOURCE.relative_to(ROOT)),
-        "source_sha256": hashlib.sha256(SOURCE.read_bytes()).hexdigest(),
-        "asset_sha256": {
-            path.name: hashlib.sha256(path.read_bytes()).hexdigest()
-            for path in sorted(ASSETS.iterdir())
-            if path.name in {mesh.get("file") for mesh in mjcf.findall("asset/mesh")}
-        },
-        "model_sha256": hashlib.sha256(MODEL.read_bytes()).hexdigest(),
-        "mass_kg": float(model.body_mass.sum()),
-        "nq": model.nq,
-        "nv": model.nv,
-        "nu": model.nu,
-        "joint_names": list(JOINTS),
-        "actuator_names": [model.actuator(i).name for i in range(model.nu)],
-        "changes": [
-            "adapt upstream actuator names to policy order and framework limits",
-            "set the local 2 ms timestep and implicitfast integrator",
-            "add the framework ground plane and key light",
-            "rename the upstream IMU accelerometer sensor to imu_accel",
-        ],
-    }
-    (MODEL.parent / "model_manifest.json").write_text(
-        json.dumps(info, indent=2) + "\n"
-    )
-    print(json.dumps(info, indent=2))
-    return MODEL
-
-
-def initial_data(model):
-    data = mujoco.MjData(model)
-    data.qpos[:7] = [0.0, 0.0, 0.6, 1.0, 0.0, 0.0, 0.0]
-    for i, name in enumerate(JOINTS):
-        joint = model.joint(name)
-        data.qpos[joint.qposadr[0]] = NOMINAL[i] if i < 12 else 0.0
-    mujoco.mj_forward(model, data)
-    return data
+    sensors = ET.SubElement(root, "sensor")
+    ET.SubElement(sensors, "framequat", name="imu_quat", objtype="site", objname="imu")
+    ET.SubElement(sensors, "gyro", name="imu_gyro", site="imu")
+    ET.SubElement(sensors, "accelerometer", name="imu_accel", site="imu")
+    ET.indent(root)
+    ET.ElementTree(root).write(output, encoding="unicode")
+    model = mujoco.MjModel.from_xml_path(str(output))
+    # Keep one build-time check; historical failure cases are recorded in docs.
+    expected_mass = sum(values[0] for values in inertias.values())
+    if (model.nq, model.nv, model.nu) != (23, 22, 16) or not np.isclose(
+        model.body_mass.sum(), expected_mass, atol=1e-8, rtol=0
+    ):
+        raise ValueError("URDF conversion changed floating-base dimensions or mass")
+    for leg in ("FL", "FR", "RL", "RR"):
+        geom = model.geom(leg + "_foot_collision_0")
+        rotation = np.empty(9)
+        mujoco.mju_quat2Mat(rotation, geom.quat)
+        axle = rotation.reshape(3, 3)[:, 2]
+        joint_axis = model.joint(leg + "_foot_joint").axis
+        if geom.type[0] != mujoco.mjtGeom.mjGEOM_CYLINDER or not np.isclose(
+            abs(axle @ joint_axis), 1.0, atol=1e-10
+        ):
+            raise ValueError(f"{leg} wheel collision must be a cylinder along its joint axis")
+    return output
 
 
 if __name__ == "__main__":
-    build()
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path, default=MODEL)
+    parser.add_argument("--urdf", type=Path, default=SOURCE)
+    args = parser.parse_args()
+    print(build(args.output, args.urdf))

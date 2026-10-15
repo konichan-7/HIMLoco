@@ -4,6 +4,8 @@
 
 2026-10-14 用户最新约定：只保留一个 `go2w` 训练任务，默认开启原版 DR，terrain 继承原版 HIMLoco 的 trimesh 与地形课程。Go2W 专属修改集中在 `legged_gym/legged_gym/envs/go2w/`；共用训练代码仅保留任务注册与必要的动态维度导出支持。下文平地先行路线为历史规划，当前任务以本条为准。
 
+2026-10-15 用户最新资产与精简约定：本地 Go2W 基于官方 ROS URDF commit `5994d4faef0a9cadd3287f8de0199a67eeb2a259`，四轮碰撞采用 cylinder（radius=0.086 m、length=0.045 m、xyz=0、rpy=[π/2,0,0]），其余显式质量、质心、惯量、关节和 visual 保持官方来源。活动 URDF 位于 `resources/robots/go2w/urdf/go2w.urdf`，活动 MJCF 位于 `xml/go2w.xml`。修改 URDF 后显式运行 `python -m sim2sim.build_model`；运行时直接读取活动 MJCF。按用户要求删除 sim2sim 独立诊断/评分/回放脚本、测试套件、重复模型生成入口和资源校验重建框架，不要重新引入。只保留运行所需代码、生成器中的最小检查及 SDK/策略输入、CRC、力矩限幅、超时处理。遇到的问题记录在 `docs/sim2sim_known_issues.md`。保持 50 Hz 推理与 500 Hz PD，`--policy` 必填；不要生成未训练 probe。GitHub issue 必须先向用户展示文案并获得确认后发布。
+
 ## 1. 最终目标
 
 在 **Unitree Go2W 轮腿机器人上复现 HIMLoco 方法**，依次完成训练、MuJoCo sim2sim 和实机部署。最终产物需要包括机器人适配、可复现的训练配置、完整推理模型、仿真评估以及可在机器人上运行的部署代码。
@@ -33,7 +35,7 @@ Orin NX 的系统、JetPack/CUDA、推理运行时、网络接口和机器人固
 - 训练使用当前仓库自带的 `legged_gym` 和 `rsl_rl`，不要直接换成上游最新版。
 - 原始接口为 12 维动作、45 维单帧观测、6 帧历史；导出器含写死的 45 维切片。
 - Go2W 资源在 `legged_gym/resources/robots/go2w/`，当前为未跟踪文件；远端交付时需要包含这些资源。
-- Go2W 已统一为 `urdf/go2w.urdf`、`meshes/`、`xml/go2w.xml` 的资源布局，URDF 使用相对网格路径，不依赖 ROS package 解析。官方 MJCF 已从 `sim2sim/assets/` 迁入此目录；来源与哈希见 `SOURCE.md`，许可见 `LICENSE.unitree_mujoco`，sim2sim 生成器从该统一目录读取。
+- Go2W 已统一为 `urdf/go2w.urdf`、`meshes/`、`xml/go2w.xml` 的资源布局，URDF 使用相对网格路径，不依赖 ROS package 解析。官方 MJCF 已从 `sim2sim/assets/` 迁入此目录；来源与哈希见 `SOURCE.md`，许可见 `legged_gym/licenses/assets/go2w_unitree_mujoco.txt`，sim2sim 生成器从该统一目录读取。
 - Go2W 有 12 个腿关节和 4 个连续旋转轮关节；轮关节名是 `FL/FR/RL/RR_foot_joint`。
 - 本机已搭建 `sim2sim/`：从资源目录中的官方 MJCF 派生本地 MuJoCo 场景，两个独立 Python SDK 进程在 loopback DDS 通信，TorchScript 支持 Apple Silicon MPS。运行说明见 [sim2sim/README.md](sim2sim/README.md)。URDF 与官方 MJCF 的质量/碰撞并非已对齐，资源整理不代表动力学一致性验收。
 - 本地验证使用标记为未训练的接口 probe；尚未实现 Go2W HIM 训练或 Orin NX 实机部署，也没有完成训练策略 sim2sim 与实机验收。

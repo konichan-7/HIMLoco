@@ -67,10 +67,13 @@ class Latest:
             return self.value, self.received_at, self.count
 
 
-def command_message(q_target, dq_target, kp, kd):
+def command_message(q_target, dq_target, kp, kd, simulation_tick=None):
     msg = unitree_go_msg_dds__LowCmd_()
     msg.head = [0xFE, 0xEF]
     msg.level_flag = 0xFF
+    # Simulation-only acknowledgement, covered by CRC. Zero means unsequenced.
+    if simulation_tick is not None:
+        msg.reserve = int(simulation_tick) + 1
     for i, sdk_index in enumerate(POLICY_TO_SDK):
         motor = msg.motor_cmd[int(sdk_index)]
         motor.mode = 1

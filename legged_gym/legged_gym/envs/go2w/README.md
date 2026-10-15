@@ -33,13 +33,14 @@ python -m legged_gym.envs.go2w.export --checkpoint /path/to/model.pt --output /p
 
 可添加 `--samples /path/to/parity_samples.npz` 验证真实回放观测；默认只用合成样本检验网络导出一致性。原版 `play.py` 仍可导出 `policy.pt`，Go2W 专属导出入口额外保存 metadata 与 parity 样本。原版 train/runner 的续训及保存行为也保留，本次未继续修改共用框架。
 
-本地张量/网络回归（不调用 Isaac Gym/PhysX）与现有 MuJoCo 接口测试：
+本地训练张量/网络回归（不调用 Isaac Gym/PhysX，独立于 sim2sim）：
 
 ```bash
 .venv-sim2sim/bin/python legged_gym/legged_gym/envs/go2w/tests/check_go2w.py
-.venv-sim2sim/bin/python -m pytest sim2sim/tests -q
 ```
 
 本地检查不代表 PhysX 地形/接触验证、训练完成或闭环 sim2sim 验收。
 
 2026-10-14 重写后检查结果：12 项 Go2W 张量/网络回归与 5 项 sim2sim 测试通过；全部已跟踪 `rsl_rl/` 文件与 HEAD 逐字节一致，基础环境与 train/play 入口也恢复原版。此记录替代此前双任务方案的当前实现说明；历史审查数据仍保留在 `outputs/`。
+
+2026-10-15：sim2sim 诊断/测试套件按用户要求移除。当前模型与运行说明见 `sim2sim/README.md`，历史问题见 `docs/sim2sim_known_issues.md`；保留本目录原有的训练/HIM 回归。

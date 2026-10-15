@@ -1,4 +1,3 @@
-<?xml version='1.0' encoding='utf-8'?>
 <robot name="go2w_description">
   <link name="base">
     <inertial>
@@ -11,8 +10,20 @@
       <geometry>
         <mesh filename="../meshes/base.dae" />
       </geometry>
-      <material name="">
+      <material name="深色橡胶_001-effect">
+        <color rgba="0.6717055 0.6924257 0.7742702 1" />
+      </material>
+      <material name="白色logo_001-effect">
         <color rgba="1 1 1 1" />
+      </material>
+      <material name="黑色贴纸_007-effect">
+        <color rgba="0.009018 0.009018 0.009018 1" />
+      </material>
+      <material name="黑色金属_007-effect">
+        <color rgba="0.01341 0.01341 0.01341 1" />
+      </material>
+      <material name="黑色塑料_003-effect">
+        <color rgba="0.023455 0.023455 0.023455 1" />
       </material>
     </visual>
     <collision>
@@ -71,8 +82,11 @@
       <geometry>
         <mesh filename="../meshes/hip.dae" />
       </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
+      <material name="深色橡胶_001-effect">
+        <color rgba="0.6717055 0.6924257 0.7742702 1" />
+      </material>
+      <material name="Material-effect">
+        <color rgba="0.9 0.95 0.95 1" />
       </material>
     </visual>
     <collision>
@@ -100,8 +114,11 @@
       <geometry>
         <mesh filename="../meshes/thigh.dae" />
       </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
+      <material name="深色橡胶_003-effect">
+        <color rgba="0.6717055 0.6924257 0.7742702 1" />
+      </material>
+      <material name="Material_009-effect">
+        <color rgba="0.9 0.95 0.95 1" />
       </material>
     </visual>
     <collision>
@@ -127,7 +144,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/calf.dae" />
+        <mesh filename="../meshes/calf.stl" />
       </geometry>
       <material name="">
         <color rgba="1 1 1 1" />
@@ -212,8 +229,7 @@
     <collision>
       <origin rpy="1.5707963267948966 0 0" xyz="0 0.0 0" />
       <geometry>
-        <mesh filename="../meshes/left_wheel.dae" />
-        <!-- <cylinder length="0.045" radius="0.086" /> -->
+        <cylinder radius="0.086" length="0.045" />
       </geometry>
     </collision>
   </link>
@@ -222,7 +238,6 @@
     <parent link="FL_calf" />
     <child link="FL_foot" />
     <axis xyz="0 1 0" />
-    <!-- <dynamics damping="0.01" friction="0.01"/> -->
     <limit effort="23.7" velocity="30.1" />
   </joint>
   <link name="FR_hip">
@@ -236,8 +251,11 @@
       <geometry>
         <mesh filename="../meshes/hip.dae" />
       </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
+      <material name="深色橡胶_001-effect">
+        <color rgba="0.6717055 0.6924257 0.7742702 1" />
+      </material>
+      <material name="Material-effect">
+        <color rgba="0.9 0.95 0.95 1" />
       </material>
     </visual>
     <collision>
@@ -265,8 +283,11 @@
       <geometry>
         <mesh filename="../meshes/thigh_mirror.dae" />
       </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
+      <material name="深色橡胶_012-effect">
+        <color rgba="0.6717055 0.6924257 0.7742702 1" />
+      </material>
+      <material name="Material_011-effect">
+        <color rgba="0.9 0.95 0.95 1" />
       </material>
     </visual>
     <collision>
@@ -292,7 +313,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/calf_mirror.dae" />
+        <mesh filename="../meshes/calf_mirror.stl" />
       </geometry>
       <material name="">
         <color rgba="1 1 1 1" />
@@ -377,8 +398,7 @@
     <collision>
       <origin rpy="1.5707963267948966 0 0" xyz="0 -0.0 0" />
       <geometry>
-        <mesh filename="../meshes/right_wheel.dae" />
-        <!-- <cylinder length="0.045" radius="0.086" /> -->
+        <cylinder radius="0.086" length="0.045" />
       </geometry>
     </collision>
   </link>
@@ -400,8 +420,11 @@
       <geometry>
         <mesh filename="../meshes/hip.dae" />
       </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
+      <material name="深色橡胶_001-effect">
+        <color rgba="0.6717055 0.6924257 0.7742702 1" />
+      </material>
+      <material name="Material-effect">
+        <color rgba="0.9 0.95 0.95 1" />
       </material>
     </visual>
     <collision>
@@ -429,8 +452,11 @@
       <geometry>
         <mesh filename="../meshes/thigh.dae" />
       </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
+      <material name="深色橡胶_003-effect">
+        <color rgba="0.6717055 0.6924257 0.7742702 1" />
+      </material>
+      <material name="Material_009-effect">
+        <color rgba="0.9 0.95 0.95 1" />
       </material>
     </visual>
     <collision>
@@ -456,7 +482,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/calf.dae" />
+        <mesh filename="../meshes/calf.stl" />
       </geometry>
       <material name="">
         <color rgba="1 1 1 1" />
@@ -541,8 +567,7 @@
     <collision>
       <origin rpy="1.5707963267948966 0 0" xyz="0 0.0 0" />
       <geometry>
-        <mesh filename="../meshes/left_wheel.dae" />
-        <!-- <cylinder length="0.045" radius="0.086" /> -->
+        <cylinder radius="0.086" length="0.045" />
       </geometry>
     </collision>
   </link>
@@ -564,8 +589,11 @@
       <geometry>
         <mesh filename="../meshes/hip.dae" />
       </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
+      <material name="深色橡胶_001-effect">
+        <color rgba="0.6717055 0.6924257 0.7742702 1" />
+      </material>
+      <material name="Material-effect">
+        <color rgba="0.9 0.95 0.95 1" />
       </material>
     </visual>
     <collision>
@@ -593,8 +621,11 @@
       <geometry>
         <mesh filename="../meshes/thigh_mirror.dae" />
       </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
+      <material name="深色橡胶_012-effect">
+        <color rgba="0.6717055 0.6924257 0.7742702 1" />
+      </material>
+      <material name="Material_011-effect">
+        <color rgba="0.9 0.95 0.95 1" />
       </material>
     </visual>
     <collision>
@@ -620,7 +651,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/calf_mirror.dae" />
+        <mesh filename="../meshes/calf_mirror.stl" />
       </geometry>
       <material name="">
         <color rgba="1 1 1 1" />
@@ -705,8 +736,7 @@
     <collision>
       <origin rpy="1.5707963267948966 0 0" xyz="0 -0.0 0" />
       <geometry>
-        <mesh filename="../meshes/right_wheel.dae" />
-        <!-- <cylinder length="0.045" radius="0.086" /> -->
+        <cylinder radius="0.086" length="0.045" />
       </geometry>
     </collision>
   </link>

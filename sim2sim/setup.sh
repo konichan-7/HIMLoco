@@ -31,4 +31,3 @@ fi
 export CYCLONEDDS_HOME="$HIM_ROOT/.deps/cyclonedds-install"
 uv pip install --python .venv-sim2sim/bin/python -r sim2sim/requirements.lock.txt
 .venv-sim2sim/bin/python -m sim2sim.build_model
-.venv-sim2sim/bin/python -m sim2sim.doctor

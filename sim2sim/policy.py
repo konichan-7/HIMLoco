@@ -1,66 +1,14 @@
-"""TorchScript inference on MPS, plus an explicitly untrained interface probe."""
+"""TorchScript inference for the 53- and 57-dimensional Go2W policy layouts."""
 
+import hashlib
 import json
 import time
 from pathlib import Path
 
 import numpy as np
 import torch
-from torch import nn
-from torch.nn import functional as F
 
-from .config import CACHE, HISTORY, JOINTS, OBS_DIM, POLICY_TO_SDK, metadata
-
-
-class InterfaceProbe(nn.Module):
-    """HIM-shaped MLP for transport/MPS validation; not a learned locomotion policy."""
-
-    def __init__(self):
-        super().__init__()
-        self.encoder = nn.Sequential(
-            nn.Linear(318, 128),
-            nn.ELU(),
-            nn.Linear(128, 64),
-            nn.ELU(),
-            nn.Linear(64, 19),
-        )
-        self.actor = nn.Sequential(
-            nn.Linear(72, 512),
-            nn.ELU(),
-            nn.Linear(512, 256),
-            nn.ELU(),
-            nn.Linear(256, 128),
-            nn.ELU(),
-            nn.Linear(128, 16),
-        )
-        nn.init.zeros_(self.actor[-1].weight)
-        nn.init.zeros_(self.actor[-1].bias)
-
-    def forward(self, history):
-        encoded = self.encoder(history)
-        embedding = torch.cat(
-            (history[:, :53], encoded[:, :3], F.normalize(encoded[:, 3:], dim=-1)),
-            dim=-1,
-        )
-        actions = self.actor(embedding)
-        # Manual low-speed rolling reference; the legs keep nominal targets.
-        vx = history[:, 0] / 2.0
-        yaw = history[:, 2] / 0.25
-        left = (vx - 0.19 * yaw) / (0.086 * 10.0)
-        right = (vx + 0.19 * yaw) / (0.086 * 10.0)
-        wheels = torch.stack((left, right, left, right), dim=-1)
-        return torch.cat((actions[:, :12], wheels), dim=-1)
-
-
-def make_probe():
-    folder = CACHE / "interface_probe"
-    folder.mkdir(parents=True, exist_ok=True)
-    torch.manual_seed(1)
-    torch.jit.script(InterfaceProbe().eval()).save(str(folder / "policy.pt"))
-    (folder / "metadata.json").write_text(
-        json.dumps(metadata("interface_probe_untrained"), indent=2) + "\n"
-    )
-    return folder / "policy.pt"
+from .config import HISTORY, JOINTS, LIMITS, POLICY_TO_SDK
 
 
 def projected_gravity(quaternion):
@@ -81,20 +29,64 @@ class Policy:
             Path(metadata_path or self.path.with_name("metadata.json")).read_text()
         )
         if (
-            self.cfg["joint_names"] != list(JOINTS)
-            or self.cfg["policy_to_sdk"] != POLICY_TO_SDK.tolist()
+            self.cfg.get("policy_sha256")
+            and hashlib.sha256(self.path.read_bytes()).hexdigest()
+            != self.cfg["policy_sha256"]
         ):
-            raise ValueError(
-                "Policy/SDK joint order differs from the local Go2W contract"
-            )
+            raise ValueError("Policy SHA256 does not match metadata")
+        names = self.cfg["joint_names"]
+        if len(names) != 16 or set(names) != set(JOINTS):
+            raise ValueError("Expected all 16 Go2W joints exactly once")
+        self.to_canonical = np.array([names.index(name) for name in JOINTS])
+        expected_sdk = [int(POLICY_TO_SDK[list(JOINTS).index(n)]) for n in names]
+        if self.cfg["policy_to_sdk"] != expected_sdk:
+            raise ValueError("Policy joint names disagree with policy_to_sdk")
+        self.leg_indices = np.array(
+            [i for i, n in enumerate(names) if not n.endswith("_foot_joint")]
+        )
+        self.wheel_indices = np.array(
+            [i for i, n in enumerate(names) if n.endswith("_foot_joint")]
+        )
+        self.obs_dim = self.cfg["num_one_step_obs"]
         if (
-            self.cfg["num_one_step_obs"],
             self.cfg["history_length"],
             self.cfg["num_actions"],
             self.cfg["history_order"],
             self.cfg["history_reset"],
-        ) != (53, 6, 16, "newest_first", "zeros_then_first_frame"):
-            raise ValueError("Expected the proposed Go2W 53 x 6 -> 16 policy contract")
+        ) != (6, 16, "newest_first", "zeros_then_first_frame"):
+            raise ValueError("Expected six newest-first frames and 16 actions")
+        profile = self.cfg.get("observation_profile", "him_go2w_53")
+        if (profile, self.obs_dim) not in [
+            ("him_go2w_53", 53),
+            ("trackinbit_go2w_57", 57),
+        ]:
+            raise ValueError("Unknown Go2W observation profile")
+        self.profile = profile
+        if profile == "him_go2w_53" and names != list(JOINTS):
+            raise ValueError(
+                "The 53-dimensional profile requires canonical joint order"
+            )
+        if profile == "trackinbit_go2w_57":
+            reference_names = [
+                f"{leg}_{joint}_joint"
+                for leg in ("FL", "FR", "RL", "RR")
+                for joint in ("hip", "thigh", "calf", "foot")
+            ]
+            if names != reference_names:
+                raise ValueError(
+                    "The reference profile requires interleaved leg/wheel order"
+                )
+        if not np.allclose(
+            np.asarray(self.cfg["torque_limits"])[self.to_canonical], LIMITS
+        ):
+            raise ValueError(
+                "Policy torque limits disagree with the MuJoCo feedback model"
+            )
+        if self.cfg.get("wheel_velocity_observation", "real") not in (
+            "real",
+            "training_masked",
+        ):
+            raise ValueError("Unknown wheel velocity observation mode")
         if abs(self.cfg["policy_dt"] - 0.02) > 1e-9:
             raise ValueError(
                 "This simulator currently supports the 50 Hz policy contract"
@@ -108,12 +100,14 @@ class Policy:
         self.device = torch.device(device)
         torch.set_num_threads(1)
         self.model = torch.jit.load(str(self.path), map_location=self.device).eval()
-        self.history = np.zeros((HISTORY, OBS_DIM), dtype=np.float32)
+        self.history = np.zeros((HISTORY, self.obs_dim), dtype=np.float32)
         self.last_action = np.zeros(16, dtype=np.float32)
         self.latencies = []
         self.nominal = np.asarray(self.cfg["default_leg_angles"], dtype=np.float32)
+        self.kp = np.asarray(self.cfg["kp"])[self.to_canonical]
+        self.kd = np.asarray(self.cfg["kd"])[self.to_canonical]
         for _ in range(5):
-            self.infer(np.zeros((1, 318), dtype=np.float32))
+            self.infer(np.zeros((1, HISTORY * self.obs_dim), dtype=np.float32))
 
     @torch.inference_mode()
     def infer(self, history):
@@ -127,22 +121,37 @@ class Policy:
         return action[0], (time.perf_counter() - start) * 1000
 
     def step(self, state, command):
-        motors = [state.motor_state[int(i)] for i in POLICY_TO_SDK]
+        motors = [state.motor_state[int(i)] for i in self.cfg["policy_to_sdk"]]
         q = np.asarray([m.q for m in motors], dtype=np.float32)
         dq = np.asarray([m.dq for m in motors], dtype=np.float32)
         scales = self.cfg
-        obs = np.concatenate(
-            (
-                np.asarray(command, dtype=np.float32) * scales["command_scale"],
-                np.asarray(state.imu_state.gyroscope)
-                * scales["angular_velocity_scale"],
-                projected_gravity(state.imu_state.quaternion),
-                (q[:12] - self.nominal) * scales["leg_position_scale"],
-                dq[:12] * scales["leg_velocity_scale"],
-                dq[12:] * scales["wheel_velocity_scale"],
+        cmd = np.asarray(command, dtype=np.float32) * scales["command_scale"]
+        gyro = np.asarray(state.imu_state.gyroscope) * scales["angular_velocity_scale"]
+        gravity = projected_gravity(state.imu_state.quaternion)
+        position = np.zeros(16, dtype=np.float32)
+        position[self.leg_indices] = (q[self.leg_indices] - self.nominal) * scales[
+            "leg_position_scale"
+        ]
+        velocity = dq * scales["leg_velocity_scale"]
+        velocity[self.wheel_indices] = (
+            dq[self.wheel_indices] * scales["wheel_velocity_scale"]
+        )
+        if scales.get("wheel_velocity_observation", "real") == "training_masked":
+            velocity[self.wheel_indices] = (
+                0  # Observation copy only; never alter simulator state.
+            )
+        if self.profile == "trackinbit_go2w_57":
+            fields = (gyro, gravity, cmd, position, velocity, self.last_action)
+        else:
+            fields = (
+                cmd,
+                gyro,
+                gravity,
+                position[self.leg_indices],
+                velocity,
                 self.last_action,
             )
-        ).astype(np.float32)
+        obs = np.concatenate(fields).astype(np.float32)
         if not np.isfinite(obs).all():
             raise ValueError("Nonfinite observation")
         self.history[1:] = self.history[:-1].copy()
@@ -152,15 +161,12 @@ class Policy:
         raw, latency = self.infer(self.history.reshape(1, -1))
         self.latencies.append(latency)
         self.last_action = np.clip(raw, -scales["clip_actions"], scales["clip_actions"])
-        q_target = np.r_[
-            self.nominal + scales["leg_action_scale"] * self.last_action[:12],
-            np.zeros(4),
-        ]
-        dq_target = np.r_[
-            np.zeros(12), scales["wheel_action_scale"] * self.last_action[12:]
-        ]
-        return q_target, dq_target
-
-    def reset(self):
-        self.history.fill(0)
-        self.last_action.fill(0)
+        q_target, dq_target = np.zeros(16), np.zeros(16)
+        q_target[self.leg_indices] = (
+            self.nominal
+            + scales["leg_action_scale"] * self.last_action[self.leg_indices]
+        )
+        dq_target[self.wheel_indices] = (
+            scales["wheel_action_scale"] * self.last_action[self.wheel_indices]
+        )
+        return q_target[self.to_canonical], dq_target[self.to_canonical]

@@ -5,8 +5,7 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-CACHE = ROOT / ".cache/sim2sim"
-MODEL = CACHE / "go2w/scene.xml"
+MODEL = ROOT / "legged_gym/resources/robots/go2w/xml/go2w.xml"
 LEGS = ("FL", "FR", "RL", "RR")
 JOINTS = tuple(
     f"{leg}_{joint}_joint" for leg in LEGS for joint in ("hip", "thigh", "calf")

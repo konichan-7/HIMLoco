@@ -25,6 +25,7 @@ def load_definitions(path, names, namespace):
 def make_env():
     ns = {
         'torch': torch, 'inspect': inspect, 'BaseTask': object,
+        'LEGGED_GYM_ROOT_DIR': str(ROOT),
         'quat_rotate_inverse': inverse_rotate,
         'torch_rand_float': lambda lo, hi, shape, device: lo + (hi - lo) * torch.rand(shape, device=device),
         'gymtorch': NS(unwrap_tensor=lambda x: x),

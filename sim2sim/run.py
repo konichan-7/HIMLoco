@@ -14,7 +14,6 @@ from pathlib import Path
 import numpy as np
 
 from .config import MODEL, ROOT
-from .policy import make_probe
 
 
 def main():
@@ -22,13 +21,18 @@ def main():
     p.add_argument("--headless", action="store_true")
     p.add_argument("--duration", type=float, default=10.0)
     p.add_argument("--device", choices=["auto", "mps", "cpu"], default="auto")
-    p.add_argument("--policy", type=Path)
+    p.add_argument("--policy", type=Path, required=True)
     p.add_argument("--metadata", type=Path)
-    p.add_argument("--model", type=Path, default=MODEL)
+    p.add_argument(
+        "--model",
+        type=Path,
+        default=MODEL,
+        help="MuJoCo scene (default: resources/robots/go2w/xml/go2w.xml)",
+    )
     p.add_argument("--domain", type=int, default=71)
     p.add_argument("--command", type=float, nargs=3, default=[0.0, 0.0, 0.0])
+    p.add_argument("--schedule", type=Path)
     p.add_argument("--output", type=Path)
-    p.add_argument("--snapshot", action="store_true")
     args = p.parse_args()
     if (
         not np.isfinite(args.duration)
@@ -36,30 +40,21 @@ def main():
         or not 1 <= args.domain <= 200
     ):
         p.error("Use finite duration >= 0 and a nonzero simulation DDS domain <= 200")
-    if not args.model.exists():
-        p.error("Model missing; run ./sim2sim/setup.sh first")
-    policy = args.policy or make_probe()
-    if args.policy is None:
-        print(
-            "Using UNTRAINED interface probe: standing/manual rolling only, no trained HIM acceptance.",
-            flush=True,
-        )
+    policy = args.policy
     output = args.output or ROOT / "logs/sim2sim" / datetime.datetime.now().strftime(
         "%Y%m%d-%H%M%S-%f"
     )
     output.mkdir(parents=True, exist_ok=True)
     output = output.resolve()
-    # Keep each run's model inputs immutable even when the probe is regenerated.
+    if not args.model.exists():
+        p.error("Model missing; run python -m sim2sim.build_model first")
+    # Keep the policy and its metadata together for each run.
     inputs = output / "inputs"
     inputs.mkdir(exist_ok=True)
     shutil.copyfile(policy, inputs / "policy.pt")
     shutil.copyfile(
         args.metadata or policy.with_name("metadata.json"), inputs / "metadata.json"
     )
-    if args.model.with_name("model_manifest.json").exists():
-        shutil.copyfile(
-            args.model.with_name("model_manifest.json"), inputs / "model_manifest.json"
-        )
     policy = inputs / "policy.pt"
     env = os.environ.copy()
     env["PYTORCH_ENABLE_MPS_FALLBACK"] = "0"
@@ -83,8 +78,6 @@ def main():
     ]
     if args.headless:
         sim.append("--headless")
-    if args.snapshot:
-        sim += ["--snapshot", str(output / "scene.png")]
     control = [
         sys.executable,
         "-m",
@@ -103,6 +96,9 @@ def main():
         *map(str, args.command),
     ]
     control += ["--metadata", str(inputs / "metadata.json")]
+    if args.schedule:
+        shutil.copyfile(args.schedule, inputs / "schedule.json")
+        control += ["--schedule", str(inputs / "schedule.json")]
     print(f"Reports: {output}", flush=True)
     processes = []
     simulator_finished_at = None

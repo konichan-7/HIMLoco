@@ -61,11 +61,11 @@ We test our codes under the following environment:
 
 ## Go2W local MuJoCo test (Apple Silicon)
 
-The local test uses `unitree_sdk2_python` DDS channels and PyTorch MPS inference. See [sim2sim/README.md](sim2sim/README.md) for installation, policy metadata and [validation results](docs/local_sim2sim_validation.md). No trained Go2W HIM policy is bundled; the default model is an explicitly untrained interface probe.
+The local simulator uses `unitree_sdk2_python` DDS channels, 50 Hz policy inference and 500 Hz PD, with optional PyTorch MPS inference. Supply an exported policy and its metadata. See [sim2sim/README.md](sim2sim/README.md) for usage and [known issues](docs/sim2sim_known_issues.md) for model and control history.
 
 ```bash
 ./sim2sim/setup.sh
-./sim2sim/run.sh --device mps --duration 0
+./sim2sim/run.sh --policy /path/to/exported/policy.pt --device mps --duration 0
 ```
 
 ## 🔗 Citation

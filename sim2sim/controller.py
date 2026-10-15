@@ -58,15 +58,29 @@ def run(args):
     writer = threading.Thread(target=publish_targets, name="sdk-publisher", daemon=True)
     writer.start()
     command = np.array(args.command)
-    if not np.isfinite(command).all() or abs(command[1]) > 1e-9:
-        raise ValueError(
-            "Use finite vx/yaw commands; this rolling interface probe supports vy=0"
-        )
+    schedule = [{"start": 0.0, "command": command.tolist()}]
+    if args.schedule:
+        schedule = json.loads(args.schedule.read_text())
+        starts = np.array([segment["start"] for segment in schedule], dtype=float)
+        commands = np.array([segment["command"] for segment in schedule], dtype=float)
+        if (
+            len(starts) == 0
+            or starts[0] != 0
+            or np.any(np.diff(starts) <= 0)
+            or commands.shape != (len(starts), 3)
+            or not np.isfinite(starts).all()
+            or not np.isfinite(commands).all()
+        ):
+            raise ValueError(
+                "Schedule must start at zero with increasing start times and finite 3D commands"
+            )
+    if not np.isfinite(command).all():
+        raise ValueError("Commands must be finite")
     started = None
     iterations = 0
     overruns = 0
     status = "failed"
-    observations = []
+    next_tick = 0
     try:
         wait_until = time.monotonic() + 20
         while state.get()[0] is None:
@@ -74,7 +88,6 @@ def run(args):
                 raise TimeoutError("No SDK LowState received within 20 seconds")
             time.sleep(0.005)
         started = time.monotonic()
-        deadline = started
         while True:
             msg, received_at, _ = state.get()
             if time.monotonic() - received_at > 0.25:
@@ -84,19 +97,24 @@ def run(args):
             if args.duration > 0 and msg.tick >= round(args.duration * 1000) - 1:
                 status = "completed"
                 break
+            if msg.tick < next_tick:
+                time.sleep(0.0005)
+                continue
+            if msg.tick != next_tick:
+                raise RuntimeError(
+                    f"Missed policy tick: expected {next_tick}, received {msg.tick}"
+                )
+            for segment in schedule:
+                if segment["start"] <= msg.tick / 1000:
+                    command = np.asarray(segment["command"])
             q, dq = policy.step(msg, command)
-            target = command_message(q, dq, policy.cfg["kp"], policy.cfg["kd"])
+            target = command_message(
+                q, dq, policy.kp, policy.kd, simulation_tick=msg.tick
+            )
             outgoing.put(target)
-            if iterations < 100:
-                observations.append(policy.history.reshape(-1).copy())
             iterations += 1
-            deadline += POLICY_DT
-            delay = deadline - time.monotonic()
-            if delay > 0:
-                time.sleep(delay)
-            else:
-                overruns += 1
-                deadline = time.monotonic()
+            next_tick += round(POLICY_DT * 1000)
+            overruns += int(policy.latencies[-1] > POLICY_DT * 1000)
     except KeyboardInterrupt:
         status = "interrupted"
     finally:
@@ -106,8 +124,8 @@ def run(args):
         stop = command_message(
             np.r_[policy.nominal, np.zeros(4)],
             np.zeros(16),
-            policy.cfg["kp"],
-            policy.cfg["kd"],
+            policy.kp,
+            policy.kd,
         )
         for _ in range(3):
             publisher.Write(stop)
@@ -129,19 +147,26 @@ def run(args):
             if len(latency)
             else {},
             "command": command.tolist(),
+            "schedule": schedule,
             "policy_sha256": hashlib.sha256(policy.path.read_bytes()).hexdigest(),
             "domain": args.domain,
             "policy_hz": 1 / POLICY_DT,
             "command_publish_hz": 1 / SDK_DT,
             "command_writes": writer_stats["writes"],
             "writer_overruns": writer_stats["overruns"],
+            "timing_mode": "simulation_tick_lockstep",
+            "observation_profile": policy.profile,
+            "wheel_velocity_observation": policy.cfg.get(
+                "wheel_velocity_observation", "real"
+            ),
+            "wall_seconds": time.monotonic() - started if started else 0.0,
         }
         args.report.write_text(json.dumps(report, indent=2) + "\n")
-        if observations:
-            np.savez_compressed(
-                args.report.with_suffix(".npz"), observations=np.array(observations)
-            )
-        print("CONTROLLER", json.dumps(report), flush=True)
+        print(
+            "CONTROLLER",
+            json.dumps(report),
+            flush=True,
+        )
 
 
 def main():
@@ -152,6 +177,11 @@ def main():
     p.add_argument("--domain", type=int, default=71)
     p.add_argument("--duration", type=float, default=10.0)
     p.add_argument("--command", type=float, nargs=3, default=[0.0, 0.0, 0.0])
+    p.add_argument(
+        "--schedule",
+        type=Path,
+        help="JSON list of {start: seconds, command: [vx, vy, yaw_rate]}",
+    )
     p.add_argument("--report", type=Path, required=True)
     args = p.parse_args()
     if not np.isfinite(args.duration) or args.duration < 0:
