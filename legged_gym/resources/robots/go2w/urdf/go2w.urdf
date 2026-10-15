@@ -127,7 +127,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/calf.stl" />
+        <mesh filename="../meshes/calf.dae" />
       </geometry>
       <material name="">
         <color rgba="1 1 1 1" />
@@ -292,7 +292,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/calf_mirror.stl" />
+        <mesh filename="../meshes/calf_mirror.dae" />
       </geometry>
       <material name="">
         <color rgba="1 1 1 1" />
@@ -456,7 +456,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/calf.stl" />
+        <mesh filename="../meshes/calf.dae" />
       </geometry>
       <material name="">
         <color rgba="1 1 1 1" />
@@ -620,7 +620,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/calf_mirror.stl" />
+        <mesh filename="../meshes/calf_mirror.dae" />
       </geometry>
       <material name="">
         <color rgba="1 1 1 1" />
